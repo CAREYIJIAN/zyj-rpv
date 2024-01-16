@@ -1,4 +1,4 @@
-package com;
+package coment;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
@@ -99,6 +99,18 @@ public class NettyTest {
         gzipOutputStream.finish();
 
         byte[] bytes = baos.toByteArray();
+        System.out.println(Arrays.toString(bytes));
+    }
+    //测试解压缩
+    @Test
+    public void testDeCompress() throws IOException{
+        byte[] buf = new byte[]{12,3,12,34,45,6,7,78,5,43};
+
+        //本质就是，将buf作为输入，将结果输出到另一个字节数组当中
+        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+        GZIPInputStream gzipInputStream = new GZIPInputStream(bais);
+
+        byte[] bytes = gzipInputStream.readAllBytes();
         System.out.println(Arrays.toString(bytes));
     }
 
