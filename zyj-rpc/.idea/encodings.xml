@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-client-demo/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-client-demo/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-provider-demo/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-demo/jrpc-provider-demo/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/jrpc-demo/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/jrpc-demo/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/jrpc-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/jrpc-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/jrpc-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/jrpc-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-framework/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-manager/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jrpc-manager/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

@@ -6,7 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="jrpc-framework" />
+        <module name="jrpc-api" />
+        <module name="jrpc-client-demo" />
+        <module name="jrpc-manager" />
+        <module name="jrpc-provider-demo" />
         <module name="jrpc-demo" />
+        <module name="jrpc-common" />
+        <module name="jrpc-core" />
       </profile>
     </annotationProcessing>
   </component>
