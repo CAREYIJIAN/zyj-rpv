@@ -8,10 +8,10 @@
         <outputRelativeToContentRoot value="true" />
         <module name="jrpc-framework" />
         <module name="jrpc-api" />
-        <module name="jrpc-client-demo" />
         <module name="jrpc-manager" />
         <module name="jrpc-provider-demo" />
         <module name="jrpc-demo" />
+        <module name="jrpc-consumer-demo" />
         <module name="jrpc-common" />
         <module name="jrpc-core" />
       </profile>
