@@ -1,14 +1,13 @@
 package com.zyjclass;
 
+import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.impl.HelloJrpcImpl;
-
-import java.security.Provider;
 
 /**
  * @author CAREYIJIAN$
  * @date 2024/1/17$
  */
-public class Application {
+public class ProviderApplication {
     public static void main(String[] args) {
         //服务提供方，需要注册服务，启动服务
         /**

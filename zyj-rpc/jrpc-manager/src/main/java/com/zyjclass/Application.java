@@ -20,9 +20,9 @@ public class Application {
         //创建zookeeper实例
         ZooKeeper zooKeeper = ZookeeperUtil.createZookeeper();
         //定义节点和数据
-        ZookeeperNode basenode = new ZookeeperNode("/jrpc-metadata",null);
-        ZookeeperNode providersnode = new ZookeeperNode("/jrpc-metadata/providers",null);
-        ZookeeperNode consumersnode = new ZookeeperNode("/jrpc-metadata/consumers",null);
+        ZookeeperNode basenode = new ZookeeperNode("/jrpc-metdata",null);
+        ZookeeperNode providersnode = new ZookeeperNode("/jrpc-metdata/providers",null);
+        ZookeeperNode consumersnode = new ZookeeperNode("/jrpc-metdata/consumers",null);
         //创建节点
         List.of(basenode,providersnode,consumersnode).forEach(zookeeperNode -> {
             ZookeeperUtil.createNode(zooKeeper,zookeeperNode,null,CreateMode.PERSISTENT);

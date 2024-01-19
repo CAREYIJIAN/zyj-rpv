@@ -1,12 +1,12 @@
 package com.zyjclass;
 
-import java.lang.ref.Reference;
+import com.zyjclass.discovery.RegistryConfig;
 
 /**
  * @author CAREYIJIAN$
  * @date 2024/1/17$
  */
-public class Application {
+public class ConsumerApplication {
     public static void main(String[] args) {
         //服务的调用方，要想尽一切办法获取代理对象，使用ReferenceConfig进行封装
         ReferenceConfig<HelloJrpc> reference = new ReferenceConfig<>();
@@ -19,8 +19,8 @@ public class Application {
          * 4、发送请求，携带一些信息（接口名，参数列表，方法名）
          */
         JrpcBootstrap.getInstance()
-                .application("") //名称
-                .registry(new RegistryConfig(""))  //配置注册中心
+                .application("jrpc-consumer") //名称
+                .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))  //配置注册中心
                 .reference(reference); //要调用的接口定义
         //获取代理对象
         HelloJrpc helloJrpc = reference.get();
