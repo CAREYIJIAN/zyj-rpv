@@ -2,11 +2,21 @@ package com.zyjclass;
 
 import com.zyjclass.discovery.Registry;
 import com.zyjclass.discovery.RegistryConfig;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -32,6 +42,11 @@ public class JrpcBootstrap {
     private Registry registry;
     //维护已经发布且暴露的服务列表 key->interface的全限定名 value-> ServiceConfig<?>
     private static final Map<String, ServiceConfig<?>> SERVICE_MAP = new ConcurrentHashMap<>(16);
+
+    //连接的缓存,ps:如果使用InetSocketAddress这样的类做key，一定要看他有没有重写equals方法和toString
+    public static final Map<InetSocketAddress, Channel> CHANNEL_MAP = new ConcurrentHashMap<>(16);
+    //定义全局对外挂起的completableFuture
+    public final static Map<Long, CompletableFuture<Object>> PENDING_MAP = new ConcurrentHashMap<>(128);
 
     private JrpcBootstrap(){
         //构造启动引导程序，时要做一些初始化的事情。
@@ -110,10 +125,45 @@ public class JrpcBootstrap {
      * 启动netty服务
      */
     public void start() {
+        //创建eventloop，老板只负责处理请求，之后会将请求分发至worker
+        EventLoopGroup boss = new NioEventLoopGroup(2);
+        EventLoopGroup worker = new NioEventLoopGroup(10);
         try {
-            Thread.sleep(100000000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            //服务器引导程序
+            ServerBootstrap b = new ServerBootstrap();//用于启动NIO服务
+            //配置服务器
+            b.group(boss,worker)
+                    .channel(NioServerSocketChannel.class)//通过工厂方法设计模式实例化一个channel
+                    .localAddress(new InetSocketAddress(port))
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            //核心在这里，我们需要加入很多入站和出站的handler
+                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<>() {
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
+                                    ByteBuf byteBuf = (ByteBuf) msg;
+                                    log.info("byteBuf-->{}",byteBuf.toString(Charset.defaultCharset()));
+                                    //可以就此不管了，也可以回复
+                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("1121321213".getBytes()));
+
+                                }
+                            });
+                        }
+                    });
+            //绑定服务器，该实例将提供有关IO操作的结果或状态信息
+            ChannelFuture channelFuture = b.bind().sync();
+            System.out.println();
+            channelFuture.channel().closeFuture().sync();
+        }catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                boss.shutdownGracefully().sync();
+                worker.shutdownGracefully().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

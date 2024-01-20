@@ -1,11 +1,13 @@
 package com.zyjclass;
 
 import com.zyjclass.discovery.RegistryConfig;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author CAREYIJIAN$
  * @date 2024/1/17$
  */
+@Slf4j
 public class ConsumerApplication {
     public static void main(String[] args) {
         //服务的调用方，要想尽一切办法获取代理对象，使用ReferenceConfig进行封装
@@ -24,7 +26,8 @@ public class ConsumerApplication {
                 .reference(reference); //要调用的接口定义
         //获取代理对象
         HelloJrpc helloJrpc = reference.get();
-        helloJrpc.sayHi("Hi");
+        String hi = helloJrpc.sayHi("Hi");
+        log.info("syHi-->{}",hi);
 
     }
 }
