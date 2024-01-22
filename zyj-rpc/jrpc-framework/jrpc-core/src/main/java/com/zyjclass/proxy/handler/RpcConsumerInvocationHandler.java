@@ -3,8 +3,11 @@ package com.zyjclass.proxy.handler;
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.NettyBootstrapInitializer;
 import com.zyjclass.discovery.Registry;
+import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.exceptions.DiscoveryException;
 import com.zyjclass.exceptions.NetworkException;
+import com.zyjclass.transport.message.JrpcRequest;
+import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -62,6 +65,18 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         }
         /*-------------------------------------------封装报文---------------------------------------------*/
 
+        RequestPayload requestPayload = RequestPayload.builder()
+                .interfaceName(interfaceRef.getName())
+                .methodName(method.getName())
+                .parametsType(method.getParameterTypes())
+                .parametersValue(args).returnType(method.getReturnType()).build();
+
+        JrpcRequest jrpcRequest = JrpcRequest.builder()
+                .requestId(1L)
+                .compressType((byte) 1)
+                .requestType(RequestType.REQUEST.getId())
+                .serializeType((byte) 1)
+                .requestPayload(requestPayload).build();
 
 
 
@@ -88,7 +103,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         //4.发送报文
         CompletableFuture<Object> completableFuture = new CompletableFuture<>();
         JrpcBootstrap.PENDING_MAP.put(1L,completableFuture);
-        channel.writeAndFlush(Unpooled.copiedBuffer("hello--zyj".getBytes())).addListener((ChannelFutureListener) promise -> {
+
+        //这里writeAndFlush写出一个请求，这个请求实例就会进入pipeline执行出站的一系列操作
+        //第一个出站程序一定是将 jrpcRequest转换为二进制的报文
+        channel.writeAndFlush(jrpcRequest).addListener((ChannelFutureListener) promise -> {
             //将completableFuture挂起并暴露，并且在得到服务提供方的响应的时候调用complete方法
 
             if (!promise.isSuccess()) {

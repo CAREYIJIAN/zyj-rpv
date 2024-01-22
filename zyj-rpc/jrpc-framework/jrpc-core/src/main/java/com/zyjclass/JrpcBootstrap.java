@@ -1,5 +1,7 @@
 package com.zyjclass;
 
+import com.zyjclass.channelHandler.handler.JrpcMessageDecoder;
+import com.zyjclass.channelHandler.handler.MethodCallHandler;
 import com.zyjclass.discovery.Registry;
 import com.zyjclass.discovery.RegistryConfig;
 import io.netty.bootstrap.ServerBootstrap;
@@ -9,6 +11,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -41,7 +44,7 @@ public class JrpcBootstrap {
     private int port = 8088;
     private Registry registry;
     //维护已经发布且暴露的服务列表 key->interface的全限定名 value-> ServiceConfig<?>
-    private static final Map<String, ServiceConfig<?>> SERVICE_MAP = new ConcurrentHashMap<>(16);
+    public static final Map<String, ServiceConfig<?>> SERVICE_MAP = new ConcurrentHashMap<>(16);
 
     //连接的缓存,ps:如果使用InetSocketAddress这样的类做key，一定要看他有没有重写equals方法和toString
     public static final Map<InetSocketAddress, Channel> CHANNEL_MAP = new ConcurrentHashMap<>(16);
@@ -139,16 +142,13 @@ public class JrpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             //核心在这里，我们需要加入很多入站和出站的handler
-                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<>() {
-                                @Override
-                                protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-                                    ByteBuf byteBuf = (ByteBuf) msg;
-                                    log.info("byteBuf-->{}",byteBuf.toString(Charset.defaultCharset()));
-                                    //可以就此不管了，也可以回复
-                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("1121321213".getBytes()));
-
-                                }
-                            });
+                            socketChannel.pipeline()
+                                    //日志处理
+                                    .addLast(new LoggingHandler())
+                                    //解码器
+                                    .addLast(new JrpcMessageDecoder())
+                                    //根据请求进行方法调用
+                                    .addLast(new MethodCallHandler());
                         }
                     });
             //绑定服务器，该实例将提供有关IO操作的结果或状态信息
