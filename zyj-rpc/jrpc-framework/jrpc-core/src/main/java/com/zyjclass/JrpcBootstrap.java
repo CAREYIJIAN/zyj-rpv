@@ -34,6 +34,7 @@ public class JrpcBootstrap {
     //JrpcBootstrap是个单例，每个应用程序只有一个实例
     private static final JrpcBootstrap jrpcBootstrap = new JrpcBootstrap();
     //定义相关的基础配置
+    public static String SERIALIZE_TYPE = "jdk";
     private String appName = "default";
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
@@ -179,9 +180,16 @@ public class JrpcBootstrap {
     }
 
 
-
-
-
-
-
+    /**
+     * 配置序列化的方式
+     * @param serializeType 序列化的方式
+     * @return
+     */
+    public JrpcBootstrap serialize(String serializeType) {
+        SERIALIZE_TYPE = serializeType;
+        if (log.isDebugEnabled()){
+            log.debug("配置了序列化的方式为【{}】",serializeType);
+        }
+        return this;
+    }
 }

@@ -6,6 +6,7 @@ import com.zyjclass.discovery.Registry;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.exceptions.DiscoveryException;
 import com.zyjclass.exceptions.NetworkException;
+import com.zyjclass.serialize.SerializerFactory;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.Unpooled;
@@ -75,7 +76,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .requestId(JrpcBootstrap.ID_GENERATOR.getId())
                 .compressType((byte) 1)
                 .requestType(RequestType.REQUEST.getId())
-                .serializeType((byte) 1)
+                .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload).build();
         /*-------------------------------------------发送(同步策略)---------------------------------------------*/
         //ChannelFuture channelFuture = channel.writeAndFlush(null);

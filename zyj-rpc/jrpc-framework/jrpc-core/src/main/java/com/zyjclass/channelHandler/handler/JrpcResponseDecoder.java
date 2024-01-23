@@ -1,6 +1,9 @@
 package com.zyjclass.channelHandler.handler;
 
+import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.enumeration.RequestType;
+import com.zyjclass.serialize.Serializer;
+import com.zyjclass.serialize.SerializerFactory;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.MessageFormatConstant;
@@ -98,17 +101,14 @@ public class JrpcResponseDecoder extends LengthFieldBasedFrameDecoder {
         //有了字节数组之后就可以解压缩、反序列化
 
         //反序列化
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(body);
-             ObjectInputStream ois = new ObjectInputStream(bais);){
-            Object responseBody = ois.readObject();
-            jrpcResponse.setBody(responseBody);
-        }catch (IOException | ClassNotFoundException e){
-            log.error("响应【{}】反序列化时发生了异常",requestId,e);
-        }
+        Serializer serializer = SerializerFactory.getSerializer(jrpcResponse.getSerializeType()).getSerializer();
+        Object deserialize = serializer.deserialize(body, Object.class);
+        jrpcResponse.setBody(deserialize);
+
+
         if (log.isDebugEnabled()){
             log.debug("响应【{}】已经在调用端完成解码工作。",jrpcResponse.getRequestId());
         }
-
 
         return jrpcResponse;
 

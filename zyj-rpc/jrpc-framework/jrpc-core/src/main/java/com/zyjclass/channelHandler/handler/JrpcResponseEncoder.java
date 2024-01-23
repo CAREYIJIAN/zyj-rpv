@@ -1,6 +1,9 @@
 package com.zyjclass.channelHandler.handler;
 
 import com.zyjclass.enumeration.RequestType;
+import com.zyjclass.serialize.Serializer;
+import com.zyjclass.serialize.SerializerFactory;
+import com.zyjclass.serialize.SerializerWrapper;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.MessageFormatConstant;
@@ -51,8 +54,14 @@ public class JrpcResponseEncoder extends MessageToByteEncoder<JrpcResponse> {
         if (jrpcResponse.getRequestType() == RequestType.HERT_BEAT.getId()){
             return;
         }*/
-        //body
-        byte[] body = getBodyBytes(jrpcResponse.getBody());
+
+        //对响应做序列化
+        Serializer serializer = SerializerFactory
+                .getSerializer(jrpcResponse.getSerializeType()).getSerializer();
+        byte[] body = serializer.serialize(jrpcResponse.getBody());
+        //压缩
+
+
         if (body != null){
             byteBuf.writeBytes(body);
         }
@@ -69,23 +78,6 @@ public class JrpcResponseEncoder extends MessageToByteEncoder<JrpcResponse> {
         }
     }
 
-    private byte[] getBodyBytes(Object body) {
-        //心跳的请求没有payload
-        if (body == null){
-            return null;
-        }
-        //对象怎么变成一个字节数据 序列化 压缩
-        try(ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream = new ObjectOutputStream(baos);) {
-            outputStream.writeObject(body);
-            //压缩
-
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化时出现异常");
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 

@@ -1,6 +1,11 @@
 package com.zyjclass.channelHandler.handler;
 
+import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.enumeration.RequestType;
+import com.zyjclass.serialize.SerializeUtil;
+import com.zyjclass.serialize.Serializer;
+import com.zyjclass.serialize.SerializerFactory;
+import com.zyjclass.serialize.impl.JdkSerializer;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.MessageFormatConstant;
 import com.zyjclass.transport.message.RequestPayload;
@@ -51,7 +56,20 @@ public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
             return;
         }
         //body (requestPayload)
-        byte[] body = getBodyBytes(jrpcRequest.getRequestPayload());
+        //1.根据配置的序列化方式进行序列化
+        //  方案一： 直接使用工具类，耦合性很高 如果之后想要换序列化的方式，很不方便。
+        //  byte[] serialize = SerializeUtil.serialize(jrpcRequest.getRequestPayload());
+        //  方案二：面向抽象编程（推荐）
+        Serializer serializer = SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getSerializer();
+        byte[] body = serializer.serialize(jrpcRequest.getRequestPayload());
+
+
+        //2.根据配置的压缩方式进行压缩
+
+
+
+
+
         if (body != null){
             byteBuf.writeBytes(body);
         }
@@ -68,23 +86,6 @@ public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
         }
     }
 
-    private byte[] getBodyBytes(RequestPayload requestPayload) {
-        //心跳的请求没有payload
-        if (requestPayload == null){
-            return null;
-        }
-        //对象怎么变成一个字节数据 序列化 压缩
-        try(ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream = new ObjectOutputStream(baos);) {
-            outputStream.writeObject(requestPayload);
-            //压缩
-
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化时出现异常");
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 
