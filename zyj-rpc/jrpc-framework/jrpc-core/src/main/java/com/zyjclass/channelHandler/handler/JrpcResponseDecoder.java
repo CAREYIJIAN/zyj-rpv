@@ -2,6 +2,7 @@ package com.zyjclass.channelHandler.handler;
 
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.transport.message.JrpcRequest;
+import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.MessageFormatConstant;
 import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.ByteBuf;
@@ -9,7 +10,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  * 基于长度字段的帧解码器
@@ -17,8 +20,8 @@ import java.io.*;
  * @date 2024/1/20$
  */
 @Slf4j
-public class JrpcMessageDecoder extends LengthFieldBasedFrameDecoder {
-    public JrpcMessageDecoder() {
+public class JrpcResponseDecoder extends LengthFieldBasedFrameDecoder {
+    public JrpcResponseDecoder() {
         //找到当前报文的总长度，截取报文，截取出来的报文再进行解析
         super(
                 MessageFormatConstant.MAX_FRAME_LENGTH,//最大帧的长度，超过这个值会直接丢弃
@@ -66,7 +69,7 @@ public class JrpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         int fullLength = byteBuf.readInt();
 
         //5.解析请求的类型 （判断是不是心跳检测）
-        byte requestType = byteBuf.readByte();
+        byte responseCode = byteBuf.readByte();
 
         //6.解析序列化类型
         byte serializeType = byteBuf.readByte();
@@ -78,32 +81,36 @@ public class JrpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         long requestId = byteBuf.readLong();
 
         //封装为jrpcRequest
-        JrpcRequest jrpcRequest = new JrpcRequest();
-        jrpcRequest.setRequestType(requestType);
-        jrpcRequest.setCompressType(compressType);
-        jrpcRequest.setSerializeType(serializeType);
+        JrpcResponse jrpcResponse = new JrpcResponse();
+        jrpcResponse.setCode(responseCode);
+        jrpcResponse.setCompressType(compressType);
+        jrpcResponse.setSerializeType(serializeType);
+        jrpcResponse.setRequestId(requestId);
 
-        //注意：心跳请求没有负载，判断后直接返回
-        if (requestType == RequestType.HERT_BEAT.getId()){
-            return jrpcRequest;
-        }
+        //注意：心跳没有负载，判断后直接返回
+        /*if (responseCode == RequestType.HERT_BEAT.getId()){
+            return jrpcResponse;
+        }*/
 
-        int payLoadLength = fullLength - headLength;
-        byte[] payload = new byte[payLoadLength];
-        byteBuf.readBytes(payload);
+        int bodyLength = fullLength - headLength;
+        byte[] body = new byte[bodyLength];
+        byteBuf.readBytes(body);
         //有了字节数组之后就可以解压缩、反序列化
 
         //反序列化
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(payload);
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(body);
              ObjectInputStream ois = new ObjectInputStream(bais);){
-            RequestPayload requestPayload = (RequestPayload)ois.readObject();
-            jrpcRequest.setRequestPayload(requestPayload);
+            Object responseBody = ois.readObject();
+            jrpcResponse.setBody(responseBody);
         }catch (IOException | ClassNotFoundException e){
-            log.error("请求【{}】反序列化时发生了异常",requestId,e);
+            log.error("响应【{}】反序列化时发生了异常",requestId,e);
+        }
+        if (log.isDebugEnabled()){
+            log.debug("响应【{}】已经在调用端完成解码工作。",jrpcResponse.getRequestId());
         }
 
 
-        return jrpcRequest;
+        return jrpcResponse;
 
     }
 

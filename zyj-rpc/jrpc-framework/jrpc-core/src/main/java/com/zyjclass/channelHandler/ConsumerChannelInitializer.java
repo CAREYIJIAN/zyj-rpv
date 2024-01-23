@@ -1,6 +1,7 @@
 package com.zyjclass.channelHandler;
 
-import com.zyjclass.channelHandler.handler.JrpcMessageEncoder;
+import com.zyjclass.channelHandler.handler.JrpcRequestEncoder;
+import com.zyjclass.channelHandler.handler.JrpcResponseDecoder;
 import com.zyjclass.channelHandler.handler.MySimpleChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -19,7 +20,10 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
                 //加一个netty自带的日志处理器
                 .addLast(new LoggingHandler(LogLevel.DEBUG))
                 //消息编码器（出站）
-                .addLast(new JrpcMessageEncoder())
+                .addLast(new JrpcRequestEncoder())
+                //入栈的解码器
+                .addLast(new JrpcResponseDecoder())
+                //处理结果
                 .addLast(new MySimpleChannelInboundHandler());
     }
 }

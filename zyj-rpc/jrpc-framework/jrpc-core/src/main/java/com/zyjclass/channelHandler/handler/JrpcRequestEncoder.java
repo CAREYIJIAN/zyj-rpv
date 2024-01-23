@@ -7,7 +7,6 @@ import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
@@ -30,7 +29,7 @@ import java.io.ObjectOutputStream;
  * @date 2024/1/20$
  */
 @Slf4j
-public class JrpcMessageEncoder extends MessageToByteEncoder<JrpcRequest> {
+public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, JrpcRequest jrpcRequest, ByteBuf byteBuf) throws Exception {
         //魔数值
@@ -38,7 +37,7 @@ public class JrpcMessageEncoder extends MessageToByteEncoder<JrpcRequest> {
         //版本号
         byteBuf.writeByte(MessageFormatConstant.VERSION);
         //头部的长度
-        byteBuf.writeByte(MessageFormatConstant.HEADER_LENGTH);
+        byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
         //总长度（不能确定，不知道body）writerIndex(将写指针移到哪个位置上) writerIndex获取当前写指针位置
         byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.FULL_FIELD_LENGTH);
         //三个类型
@@ -63,6 +62,10 @@ public class JrpcMessageEncoder extends MessageToByteEncoder<JrpcRequest> {
         byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
         //将写指针归位
         byteBuf.writerIndex(writerIndex);
+
+        if (log.isDebugEnabled()){
+            log.debug("请求【{}】已经完成报文的编码。",jrpcRequest.getRequestId());
+        }
     }
 
     private byte[] getBodyBytes(RequestPayload requestPayload) {

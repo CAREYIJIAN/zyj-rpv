@@ -72,23 +72,11 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .parametersValue(args).returnType(method.getReturnType()).build();
 
         JrpcRequest jrpcRequest = JrpcRequest.builder()
-                .requestId(1L)
+                .requestId(JrpcBootstrap.ID_GENERATOR.getId())
                 .compressType((byte) 1)
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType((byte) 1)
                 .requestPayload(requestPayload).build();
-
-
-
-
-
-
-
-
-
-
-
-
         /*-------------------------------------------发送(同步策略)---------------------------------------------*/
         //ChannelFuture channelFuture = channel.writeAndFlush(null);
         //channelFuture的简单api: get（阻塞获取结果），getNow（获取当前结果，如果未处理完成返回null）

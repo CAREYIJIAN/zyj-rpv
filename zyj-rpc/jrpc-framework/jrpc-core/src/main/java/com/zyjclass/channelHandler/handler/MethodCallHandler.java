@@ -2,7 +2,9 @@ package com.zyjclass.channelHandler.handler;
 
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.ServiceConfig;
+import com.zyjclass.enumeration.RespCode;
 import com.zyjclass.transport.message.JrpcRequest;
+import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.RequestPayload;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -23,13 +25,22 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         RequestPayload requestPayload = jrpcRequest.getRequestPayload();
 
         //2.根据负载内容进行方法调用
-        Object o = callTargetMethod(requestPayload);
+        Object object = callTargetMethod(requestPayload);
+        if (log.isDebugEnabled()){
+            log.debug("请求【{}】已经在服务端完成方法调用。",jrpcRequest.getRequestId());
+        }
 
         //3.封装响应
+        JrpcResponse jrpcResponse = new JrpcResponse();
+        jrpcResponse.setCode(RespCode.SUCCESS.getCode());
+        jrpcResponse.setRequestId(jrpcRequest.getRequestId());
+        jrpcResponse.setCompressType(jrpcRequest.getCompressType());
+        jrpcResponse.setSerializeType(jrpcRequest.getSerializeType());
+        jrpcResponse.setBody(object);
 
 
         //4.写出响应
-        channelHandlerContext.channel().writeAndFlush(null);
+        channelHandlerContext.channel().writeAndFlush(jrpcResponse);
 
 
 
