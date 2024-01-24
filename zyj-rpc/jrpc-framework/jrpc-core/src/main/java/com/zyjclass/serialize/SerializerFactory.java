@@ -3,6 +3,7 @@ package com.zyjclass.serialize;
 import com.zyjclass.serialize.impl.HessianSerializer;
 import com.zyjclass.serialize.impl.JdkSerializer;
 import com.zyjclass.serialize.impl.JsonSerializer;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author CAREYIJIAN$
  * @date 2024/1/23$
  */
+@Slf4j
 public class SerializerFactory {
     
     private final static ConcurrentHashMap<String,SerializerWrapper> SERIALIZER_MAP = new ConcurrentHashMap<>();
@@ -34,7 +36,12 @@ public class SerializerFactory {
      * @return 包装类
      */
     public static SerializerWrapper getSerializer(String serializeType) {
-        return SERIALIZER_MAP.get(serializeType);
+        SerializerWrapper serializerWrapper = SERIALIZER_MAP.get(serializeType);
+        if (serializerWrapper == null){
+            log.error("未找到您指定的序列化策略【{}】，将使用默认序列化策略",serializeType);
+            return SERIALIZER_MAP.get("jdk");
+        }
+        return serializerWrapper;
     }
     /**
      * 使用工厂方法获取一个SerializerWrapper
@@ -42,6 +49,11 @@ public class SerializerFactory {
      * @return 包装类
      */
     public static SerializerWrapper getSerializer(byte serializeCode) {
-        return SERIALIZER_MAP_CODE.get(serializeCode);
+        SerializerWrapper serializerWrapper = SERIALIZER_MAP_CODE.get(serializeCode);
+        if (serializerWrapper == null){
+            log.error("未找到您指定的序列化策略【{}】，将使用默认序列化策略",serializeCode);
+            return SERIALIZER_MAP_CODE.get((byte)1);
+        }
+        return serializerWrapper;
     }
 }

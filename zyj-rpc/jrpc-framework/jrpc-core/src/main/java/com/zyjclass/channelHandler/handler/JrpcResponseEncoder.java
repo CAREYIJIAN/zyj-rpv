@@ -1,5 +1,7 @@
 package com.zyjclass.channelHandler.handler;
 
+import com.zyjclass.compress.Compressor;
+import com.zyjclass.compress.CompressorFactory;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.serialize.Serializer;
 import com.zyjclass.serialize.SerializerFactory;
@@ -59,7 +61,10 @@ public class JrpcResponseEncoder extends MessageToByteEncoder<JrpcResponse> {
         Serializer serializer = SerializerFactory
                 .getSerializer(jrpcResponse.getSerializeType()).getSerializer();
         byte[] body = serializer.serialize(jrpcResponse.getBody());
+
         //压缩
+        Compressor compressor = CompressorFactory.getCompressor(jrpcResponse.getCompressType()).getCompressor();
+        body = compressor.compress(body);
 
 
         if (body != null){

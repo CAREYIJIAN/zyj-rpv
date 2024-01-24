@@ -1,6 +1,8 @@
 package com.zyjclass.channelHandler.handler;
 
 import com.zyjclass.JrpcBootstrap;
+import com.zyjclass.compress.Compressor;
+import com.zyjclass.compress.CompressorFactory;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.serialize.SerializeUtil;
 import com.zyjclass.serialize.Serializer;
@@ -60,14 +62,12 @@ public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
         //  方案一： 直接使用工具类，耦合性很高 如果之后想要换序列化的方式，很不方便。
         //  byte[] serialize = SerializeUtil.serialize(jrpcRequest.getRequestPayload());
         //  方案二：面向抽象编程（推荐）
-        Serializer serializer = SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getSerializer();
+        Serializer serializer = SerializerFactory.getSerializer(jrpcRequest.getSerializeType()).getSerializer();
         byte[] body = serializer.serialize(jrpcRequest.getRequestPayload());
 
-
         //2.根据配置的压缩方式进行压缩
-
-
-
+        Compressor compressor = CompressorFactory.getCompressor(jrpcRequest.getCompressType()).getCompressor();
+        body = compressor.compress(body);
 
 
         if (body != null){

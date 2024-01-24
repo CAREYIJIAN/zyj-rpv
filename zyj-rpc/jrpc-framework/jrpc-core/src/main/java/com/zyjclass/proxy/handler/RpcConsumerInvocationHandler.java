@@ -2,6 +2,7 @@ package com.zyjclass.proxy.handler;
 
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.NettyBootstrapInitializer;
+import com.zyjclass.compress.CompressorFactory;
 import com.zyjclass.discovery.Registry;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.exceptions.DiscoveryException;
@@ -74,7 +75,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
         JrpcRequest jrpcRequest = JrpcRequest.builder()
                 .requestId(JrpcBootstrap.ID_GENERATOR.getId())
-                .compressType((byte) 1)
+                .compressType(CompressorFactory.getCompressor(JrpcBootstrap.COMPRESS_TYPE).getCode())
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload).build();

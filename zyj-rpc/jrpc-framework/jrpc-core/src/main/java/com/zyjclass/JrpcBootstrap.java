@@ -35,6 +35,7 @@ public class JrpcBootstrap {
     private static final JrpcBootstrap jrpcBootstrap = new JrpcBootstrap();
     //定义相关的基础配置
     public static String SERIALIZE_TYPE = "jdk";
+    public static String COMPRESS_TYPE = "gzip";
     private String appName = "default";
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
@@ -189,6 +190,19 @@ public class JrpcBootstrap {
         SERIALIZE_TYPE = serializeType;
         if (log.isDebugEnabled()){
             log.debug("配置了序列化的方式为【{}】",serializeType);
+        }
+        return this;
+    }
+
+    /**
+     * 配置压缩的算法
+     * @param compressType 压缩的方式
+     * @return
+     */
+    public JrpcBootstrap compress(String compressType) {
+        COMPRESS_TYPE = compressType;
+        if (log.isDebugEnabled()){
+            log.debug("配置了压缩的算法为【{}】",compressType);
         }
         return this;
     }

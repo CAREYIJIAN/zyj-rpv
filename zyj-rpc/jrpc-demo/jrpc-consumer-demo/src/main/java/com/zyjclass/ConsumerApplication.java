@@ -24,6 +24,7 @@ public class ConsumerApplication {
                 .application("jrpc-consumer") //名称
                 .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))  //配置注册中心
                 .serialize("hessian")
+                .compress("gzip")
                 .reference(reference); //要调用的接口定义
         //获取代理对象
         HelloJrpc helloJrpc = reference.get();

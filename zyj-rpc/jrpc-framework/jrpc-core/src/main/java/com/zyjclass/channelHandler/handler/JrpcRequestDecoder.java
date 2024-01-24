@@ -1,5 +1,7 @@
 package com.zyjclass.channelHandler.handler;
 
+import com.zyjclass.compress.Compressor;
+import com.zyjclass.compress.CompressorFactory;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.serialize.Serializer;
 import com.zyjclass.serialize.SerializerFactory;
@@ -96,6 +98,8 @@ public class JrpcRequestDecoder extends LengthFieldBasedFrameDecoder {
         byte[] payload = new byte[payLoadLength];
         byteBuf.readBytes(payload);
         //有了字节数组之后就可以解压缩、反序列化
+        Compressor compressor = CompressorFactory.getCompressor(compressType).getCompressor();
+        payload = compressor.decompress(payload);
 
         //反序列化
         Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
