@@ -1,4 +1,4 @@
-package com.zyjclass.channelHandler.handler;
+package com.zyjclass.channelhandler.handler;
 
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.ServiceConfig;

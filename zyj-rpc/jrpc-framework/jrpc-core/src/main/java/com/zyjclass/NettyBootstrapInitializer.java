@@ -1,11 +1,8 @@
 package com.zyjclass;
 
-import com.zyjclass.channelHandler.ConsumerChannelInitializer;
-import com.zyjclass.channelHandler.handler.MySimpleChannelInboundHandler;
+import com.zyjclass.channelhandler.ConsumerChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 

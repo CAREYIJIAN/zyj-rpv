@@ -1,10 +1,13 @@
 package com.zyjclass;
 
-import com.zyjclass.channelHandler.handler.JrpcRequestDecoder;
-import com.zyjclass.channelHandler.handler.JrpcResponseEncoder;
-import com.zyjclass.channelHandler.handler.MethodCallHandler;
+import com.zyjclass.channelhandler.handler.JrpcRequestDecoder;
+import com.zyjclass.channelhandler.handler.JrpcResponseEncoder;
+import com.zyjclass.channelhandler.handler.MethodCallHandler;
 import com.zyjclass.discovery.Registry;
 import com.zyjclass.discovery.RegistryConfig;
+import com.zyjclass.loadbalancer.LoadBalancer;
+import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
+import com.zyjclass.transport.message.JrpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.zookeeper.server.Request;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -33,6 +37,8 @@ public class JrpcBootstrap {
     /*-----------------------------------通用核心api-------------------------------------*/
     //JrpcBootstrap是个单例，每个应用程序只有一个实例
     private static final JrpcBootstrap jrpcBootstrap = new JrpcBootstrap();
+    public static final int PORT = 8091;
+    public static final ThreadLocal<JrpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
     //定义相关的基础配置
     public static String SERIALIZE_TYPE = "jdk";
     public static String COMPRESS_TYPE = "gzip";
@@ -41,8 +47,9 @@ public class JrpcBootstrap {
     private ProtocolConfig protocolConfig;
     public static final IdGenerator ID_GENERATOR = new IdGenerator(1,2);
     //private ZooKeeper zooKeeper; //维护一个zookeeper实例
-    private int port = 8088;
+    //注册中心
     private Registry registry;
+    public static LoadBalancer LODA_BALANCER;
     //维护已经发布且暴露的服务列表 key->interface的全限定名 value-> ServiceConfig<?>
     public static final Map<String, ServiceConfig<?>> SERVICE_MAP = new ConcurrentHashMap<>(16);
 
@@ -80,6 +87,8 @@ public class JrpcBootstrap {
 
         //尝试使用registryConfig获取一个注册中心，有点工厂设计模式的意思了
         this.registry = registryConfig.getRegistry();
+        //TODO 待修改
+        JrpcBootstrap.LODA_BALANCER = new RoundRobinLoadBalancer();
         return this;
     }
 
@@ -137,7 +146,7 @@ public class JrpcBootstrap {
             //配置服务器
             b.group(boss,worker)
                     .channel(NioServerSocketChannel.class)//通过工厂方法设计模式实例化一个channel
-                    .localAddress(new InetSocketAddress(port))
+                    .localAddress(new InetSocketAddress(PORT))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -205,5 +214,9 @@ public class JrpcBootstrap {
             log.debug("配置了压缩的算法为【{}】",compressType);
         }
         return this;
+    }
+
+    public Registry getRegistry() {
+        return registry;
     }
 }

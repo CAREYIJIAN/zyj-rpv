@@ -1,23 +1,15 @@
-package com.zyjclass.channelHandler.handler;
+package com.zyjclass.channelhandler.handler;
 
 import com.zyjclass.compress.Compressor;
 import com.zyjclass.compress.CompressorFactory;
-import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.serialize.Serializer;
 import com.zyjclass.serialize.SerializerFactory;
-import com.zyjclass.serialize.SerializerWrapper;
-import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.MessageFormatConstant;
-import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * 出站时，第一个经过的处理器

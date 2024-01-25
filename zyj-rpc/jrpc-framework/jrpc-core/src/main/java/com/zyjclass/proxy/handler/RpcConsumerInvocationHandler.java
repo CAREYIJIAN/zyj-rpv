@@ -48,23 +48,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         log.info("method-->{}",method.getName());
         log.info("args-->{}",args);
 
-        //1.发现服务，从注册中心寻找一个可用发服务
-        //传入服务的名字,返回一个ip+端口
-        InetSocketAddress address = registry.lookUp(interfaceRef.getName());
-        if (log.isDebugEnabled()){
-            log.debug("服务调用方发现了服务【{}】的可用主机【{}】", interfaceRef, address);
-        }
-        //使用netty连接服务器，发送调用的服务的名字+方法名+参数列表，返回结果
-        /**
-         * 思考：如果连接过程放在这里，那就意味着每一次调用都会产生一个netty连接，对于长连接来讲显然是不合适的
-         * 那么如何缓存我们的连接？
-         * 解决方案：缓存channel，尝试从缓存中获取channel，如果获取不到则创建并缓存。
-         */
-        //2.从缓存中获取一个可用通道(建立连接)
-        Channel channel = getAvailableChannel(address);
-        if (log.isDebugEnabled()){
-            log.debug("获取了和【{}】建立的连接通道，准备发送数据", address);
-        }
         /*-------------------------------------------封装报文---------------------------------------------*/
 
         RequestPayload requestPayload = RequestPayload.builder()
@@ -79,6 +62,29 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload).build();
+
+        //将请求存入本地线程，再合适的时候调用remove方法
+        JrpcBootstrap.REQUEST_THREAD_LOCAL.set(jrpcRequest);
+
+        /*-------------------------------------------发现服务建立通道---------------------------------------------*/
+        //1.进入负载均衡器，发现服务，从注册中心寻找服务列表，传入服务的名字,返回一个服务
+        InetSocketAddress address = JrpcBootstrap.LODA_BALANCER.selectServiceAddress(interfaceRef.getName());
+
+        if (log.isDebugEnabled()){
+            log.debug("服务调用方发现了服务【{}】的可用主机【{}】", interfaceRef, address);
+        }
+        //使用netty连接服务器，发送调用的服务的名字+方法名+参数列表，返回结果
+        /**
+         * 思考：如果连接过程放在这里，那就意味着每一次调用都会产生一个netty连接，对于长连接来讲显然是不合适的
+         * 那么如何缓存我们的连接？
+         * 解决方案：缓存channel，尝试从缓存中获取channel，如果获取不到则创建并缓存。
+         */
+        //2.从缓存中获取一个可用通道(建立连接)
+        Channel channel = getAvailableChannel(address);
+        if (log.isDebugEnabled()){
+            log.debug("获取了和【{}】建立的连接通道，准备发送数据", address);
+        }
+
         /*-------------------------------------------发送(同步策略)---------------------------------------------*/
         //ChannelFuture channelFuture = channel.writeAndFlush(null);
         //channelFuture的简单api: get（阻塞获取结果），getNow（获取当前结果，如果未处理完成返回null）
@@ -103,6 +109,9 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 completableFuture.completeExceptionally(promise.cause());
             }
         });
+
+        //清理ThreadLocal
+        JrpcBootstrap.REQUEST_THREAD_LOCAL.remove();
 
         //如果没有地方处理这个completableFuture，这里会阻塞等待complete方法执行（pipeline中最终的handler处理中）。
         //5.获取结果

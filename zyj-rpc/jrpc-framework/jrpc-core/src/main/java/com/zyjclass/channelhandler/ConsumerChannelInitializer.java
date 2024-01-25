@@ -1,8 +1,8 @@
-package com.zyjclass.channelHandler;
+package com.zyjclass.channelhandler;
 
-import com.zyjclass.channelHandler.handler.JrpcRequestEncoder;
-import com.zyjclass.channelHandler.handler.JrpcResponseDecoder;
-import com.zyjclass.channelHandler.handler.MySimpleChannelInboundHandler;
+import com.zyjclass.channelhandler.handler.JrpcRequestEncoder;
+import com.zyjclass.channelhandler.handler.JrpcResponseDecoder;
+import com.zyjclass.channelhandler.handler.MySimpleChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;

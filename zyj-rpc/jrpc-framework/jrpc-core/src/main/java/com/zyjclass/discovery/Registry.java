@@ -3,6 +3,7 @@ package com.zyjclass.discovery;
 import com.zyjclass.ServiceConfig;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * @author CAREYIJIAN$
@@ -18,10 +19,10 @@ public interface Registry {
 
 
     /**
-     * 从注册中心拉取一个可用的服务
+     * 从注册中心拉取服务列表
      * @param serviceName 服务的名称
-     * @return 服务的IP和端口（地址）
+     * @return 服务列表
      */
-    InetSocketAddress lookUp(String serviceName);
+    List<InetSocketAddress> lookUp(String serviceName);
 
 }
