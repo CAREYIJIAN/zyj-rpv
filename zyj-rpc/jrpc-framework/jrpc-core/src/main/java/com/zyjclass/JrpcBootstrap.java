@@ -3,9 +3,12 @@ package com.zyjclass;
 import com.zyjclass.channelhandler.handler.JrpcRequestDecoder;
 import com.zyjclass.channelhandler.handler.JrpcResponseEncoder;
 import com.zyjclass.channelhandler.handler.MethodCallHandler;
+import com.zyjclass.core.HeartbeatDetector;
 import com.zyjclass.discovery.Registry;
 import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.loadbalancer.LoadBalancer;
+import com.zyjclass.loadbalancer.impl.ConsistentHashBalancer;
+import com.zyjclass.loadbalancer.impl.MinimumResponseTimeLoadBalancer;
 import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
 import com.zyjclass.transport.message.JrpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
@@ -20,6 +23,7 @@ import org.apache.zookeeper.server.Request;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,7 +41,7 @@ public class JrpcBootstrap {
     /*-----------------------------------通用核心api-------------------------------------*/
     //JrpcBootstrap是个单例，每个应用程序只有一个实例
     private static final JrpcBootstrap jrpcBootstrap = new JrpcBootstrap();
-    public static final int PORT = 8091;
+    public static final int PORT = 8092;
     public static final ThreadLocal<JrpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
     //定义相关的基础配置
     public static String SERIALIZE_TYPE = "jdk";
@@ -55,6 +59,8 @@ public class JrpcBootstrap {
 
     //连接的缓存,ps:如果使用InetSocketAddress这样的类做key，一定要看他有没有重写equals方法和toString
     public static final Map<InetSocketAddress, Channel> CHANNEL_MAP = new ConcurrentHashMap<>(16);
+    public static final TreeMap<Long, Channel> ANSWER_TIME_CHANNEL_MAP = new TreeMap<>();
+
     //定义全局对外挂起的completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_MAP = new ConcurrentHashMap<>(128);
 
@@ -88,7 +94,7 @@ public class JrpcBootstrap {
         //尝试使用registryConfig获取一个注册中心，有点工厂设计模式的意思了
         this.registry = registryConfig.getRegistry();
         //TODO 待修改
-        JrpcBootstrap.LODA_BALANCER = new RoundRobinLoadBalancer();
+        JrpcBootstrap.LODA_BALANCER = new MinimumResponseTimeLoadBalancer();
         return this;
     }
 
@@ -164,7 +170,6 @@ public class JrpcBootstrap {
                     });
             //绑定服务器，该实例将提供有关IO操作的结果或状态信息
             ChannelFuture channelFuture = b.bind().sync();
-            System.out.println();
             channelFuture.channel().closeFuture().sync();
         }catch (InterruptedException e) {
             e.printStackTrace();
@@ -181,6 +186,9 @@ public class JrpcBootstrap {
 
     /*-----------------------------------服务调用方相关api-------------------------------------*/
     public JrpcBootstrap reference(ReferenceConfig<?> reference) {
+        //开启对这个服务的心跳检测
+        HeartbeatDetector.detectHeartbeat(reference.getInterface().getName());
+
         //此方法中要拿到相关配置项-注册中心
         //配置reference，将来调用get方法时生成代理对象
         //1.reference需要一个注册中心

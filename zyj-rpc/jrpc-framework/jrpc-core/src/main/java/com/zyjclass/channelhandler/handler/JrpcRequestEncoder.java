@@ -45,22 +45,26 @@ public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
         byteBuf.writeByte(jrpcRequest.getCompressType());
         //请求id
         byteBuf.writeLong(jrpcRequest.getRequestId());
+        //时间戳
+        byteBuf.writeLong(jrpcRequest.getTimeStamp());
         //注意：心跳请求不处理请求体
-        if (jrpcRequest.getRequestType() == RequestType.HERT_BEAT.getId()){
+        /*if (jrpcRequest.getRequestType() == RequestType.HERT_BEAT.getId()){
             return;
-        }
+        }*/
         //body (requestPayload)
         //1.根据配置的序列化方式进行序列化
         //  方案一： 直接使用工具类，耦合性很高 如果之后想要换序列化的方式，很不方便。
         //  byte[] serialize = SerializeUtil.serialize(jrpcRequest.getRequestPayload());
         //  方案二：面向抽象编程（推荐）
-        Serializer serializer = SerializerFactory.getSerializer(jrpcRequest.getSerializeType()).getSerializer();
-        byte[] body = serializer.serialize(jrpcRequest.getRequestPayload());
+        byte[] body = null;
+        if (jrpcRequest.getRequestPayload() != null){
+            Serializer serializer = SerializerFactory.getSerializer(jrpcRequest.getSerializeType()).getSerializer();
+            body = serializer.serialize(jrpcRequest.getRequestPayload());
 
-        //2.根据配置的压缩方式进行压缩
-        Compressor compressor = CompressorFactory.getCompressor(jrpcRequest.getCompressType()).getCompressor();
-        body = compressor.compress(body);
-
+            //2.根据配置的压缩方式进行压缩
+            Compressor compressor = CompressorFactory.getCompressor(jrpcRequest.getCompressType()).getCompressor();
+            body = compressor.compress(body);
+        }
 
         if (body != null){
             byteBuf.writeBytes(body);

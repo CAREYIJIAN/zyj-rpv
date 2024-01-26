@@ -26,5 +26,7 @@ public class JrpcResponse {
     private byte serializeType;
     //消息体
     private Object body;
+    //时间戳
+    private long timeStamp;
 
 }

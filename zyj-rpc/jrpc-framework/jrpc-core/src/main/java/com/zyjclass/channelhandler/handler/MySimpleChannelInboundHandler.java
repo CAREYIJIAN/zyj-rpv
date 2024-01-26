@@ -21,7 +21,7 @@ public class MySimpleChannelInboundHandler extends SimpleChannelInboundHandler<J
         //服务提供方给定结果
         Object returnValue = jrpcResponse.getBody();
         //从全局的挂起的请求中寻找与之匹配的待处理的completableFuture
-        CompletableFuture<Object> completableFuture = JrpcBootstrap.PENDING_MAP.get(1L);
+        CompletableFuture<Object> completableFuture = JrpcBootstrap.PENDING_MAP.get(jrpcResponse.getRequestId());
         completableFuture.complete(returnValue);
         if (log.isDebugEnabled()){
             log.debug("已寻找到编号为【{}】的completableFuture。",jrpcResponse.getRequestId());

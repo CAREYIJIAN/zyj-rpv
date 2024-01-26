@@ -2,6 +2,7 @@ package com.zyjclass.channelhandler.handler;
 
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.ServiceConfig;
+import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.enumeration.RespCode;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  * @author CAREYIJIAN$
@@ -25,10 +27,14 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         RequestPayload requestPayload = jrpcRequest.getRequestPayload();
 
         //2.根据负载内容进行方法调用
-        Object object = callTargetMethod(requestPayload);
-        if (log.isDebugEnabled()){
-            log.debug("请求【{}】已经在服务端完成方法调用。",jrpcRequest.getRequestId());
+        Object object = null;
+        if (!(jrpcRequest.getRequestType() == RequestType.HERT_BEAT.getId())){
+            object = callTargetMethod(requestPayload);
+            if (log.isDebugEnabled()){
+                log.debug("请求【{}】已经在服务端完成方法调用。",jrpcRequest.getRequestId());
+            }
         }
+
 
         //3.封装响应
         JrpcResponse jrpcResponse = new JrpcResponse();
@@ -37,6 +43,7 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         jrpcResponse.setCompressType(jrpcRequest.getCompressType());
         jrpcResponse.setSerializeType(jrpcRequest.getSerializeType());
         jrpcResponse.setBody(object);
+        jrpcResponse.setTimeStamp(new Date().getTime());
 
 
         //4.写出响应

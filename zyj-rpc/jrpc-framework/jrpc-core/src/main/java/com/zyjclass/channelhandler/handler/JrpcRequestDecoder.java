@@ -13,6 +13,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Random;
+
 /**
  * 基于长度字段的帧解码器
  * @author CAREYIJIAN$
@@ -33,6 +35,8 @@ public class JrpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception{
+        //睡一会使得根据最短响应时间的负载策略效果明显
+        Thread.sleep(new Random().nextInt(50));
         Object decode = super.decode(ctx, in);
         if (decode instanceof ByteBuf byteBuf){
             return decodeFrame(byteBuf);
@@ -79,29 +83,35 @@ public class JrpcRequestDecoder extends LengthFieldBasedFrameDecoder {
         //8.解析请求id
         long requestId = byteBuf.readLong();
 
+        //9.时间戳
+        long timeStamp = byteBuf.readLong();
+
         //封装为jrpcRequest
         JrpcRequest jrpcRequest = new JrpcRequest();
         jrpcRequest.setRequestType(requestType);
         jrpcRequest.setCompressType(compressType);
         jrpcRequest.setSerializeType(serializeType);
         jrpcRequest.setRequestId(requestId);
+        jrpcRequest.setTimeStamp(timeStamp);
 
         //注意：心跳请求没有负载，判断后直接返回
-        if (requestType == RequestType.HERT_BEAT.getId()){
+        /*if (requestType == RequestType.HERT_BEAT.getId()){
             return jrpcRequest;
-        }
+        }*/
 
         int payLoadLength = fullLength - headLength;
         byte[] payload = new byte[payLoadLength];
         byteBuf.readBytes(payload);
         //有了字节数组之后就可以解压缩、反序列化
-        Compressor compressor = CompressorFactory.getCompressor(compressType).getCompressor();
-        payload = compressor.decompress(payload);
+        if (payload != null && payload.length != 0) {
+            Compressor compressor = CompressorFactory.getCompressor(compressType).getCompressor();
+            payload = compressor.decompress(payload);
 
-        //反序列化
-        Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
-        RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
-        jrpcRequest.setRequestPayload(requestPayload);
+            //反序列化
+            Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+            RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
+            jrpcRequest.setRequestPayload(requestPayload);
+        }
 
         if (log.isDebugEnabled()){
             log.debug("请求【{}】已经在服务端完成解码操作。",jrpcRequest.getRequestId());

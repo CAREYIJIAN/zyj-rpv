@@ -44,19 +44,25 @@ public class JrpcResponseEncoder extends MessageToByteEncoder<JrpcResponse> {
         byteBuf.writeByte(jrpcResponse.getCompressType());
         //请求id
         byteBuf.writeLong(jrpcResponse.getRequestId());
+        //时间戳
+        byteBuf.writeLong(jrpcResponse.getTimeStamp());
         /*//注意：心跳请求不处理请求体
         if (jrpcResponse.getRequestType() == RequestType.HERT_BEAT.getId()){
             return;
         }*/
 
-        //对响应做序列化
-        Serializer serializer = SerializerFactory
-                .getSerializer(jrpcResponse.getSerializeType()).getSerializer();
-        byte[] body = serializer.serialize(jrpcResponse.getBody());
+        byte[] body = null;
+        if (jrpcResponse.getBody() != null){
+            //对响应做序列化
+            Serializer serializer = SerializerFactory
+                    .getSerializer(jrpcResponse.getSerializeType()).getSerializer();
+            body = serializer.serialize(jrpcResponse.getBody());
 
-        //压缩
-        Compressor compressor = CompressorFactory.getCompressor(jrpcResponse.getCompressType()).getCompressor();
-        body = compressor.compress(body);
+            //压缩
+            Compressor compressor = CompressorFactory.getCompressor(jrpcResponse.getCompressType()).getCompressor();
+            body = compressor.compress(body);
+        }
+
 
 
         if (body != null){

@@ -13,11 +13,13 @@ import com.zyjclass.transport.message.RequestPayload;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +63,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .compressType(CompressorFactory.getCompressor(JrpcBootstrap.COMPRESS_TYPE).getCode())
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getCode())
+                .timeStamp(new Date().getTime())
                 .requestPayload(requestPayload).build();
 
         //将请求存入本地线程，再合适的时候调用remove方法
@@ -98,7 +101,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         /*-------------------------------------------发送(异步策略)---------------------------------------------*/
         //4.发送报文
         CompletableFuture<Object> completableFuture = new CompletableFuture<>();
-        JrpcBootstrap.PENDING_MAP.put(1L,completableFuture);
+        JrpcBootstrap.PENDING_MAP.put(jrpcRequest.getRequestId(),completableFuture);
 
         //这里writeAndFlush写出一个请求，这个请求实例就会进入pipeline执行出站的一系列操作
         //第一个出站程序一定是将 jrpcRequest转换为二进制的报文

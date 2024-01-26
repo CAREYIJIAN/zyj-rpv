@@ -25,4 +25,6 @@ public class JrpcRequest {
     private byte serializeType;
     //消息体
     private RequestPayload requestPayload;
+    //时间戳
+    private long timeStamp;
 }
