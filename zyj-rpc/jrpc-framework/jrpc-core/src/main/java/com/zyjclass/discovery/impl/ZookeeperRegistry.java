@@ -9,6 +9,7 @@ import com.zyjclass.exceptions.NetworkException;
 import com.zyjclass.utils.NetUtils;
 import com.zyjclass.utils.zookeeper.ZookeeperNode;
 import com.zyjclass.utils.zookeeper.ZookeeperUtil;
+import com.zyjclass.watch.UpAndDownWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
@@ -67,7 +68,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         String serviceNode = Constant.BASE_PROVIDERS_PATH + "/" + serviceName;
 
         //2.从zk中获取他的子节点,eg:192.168.12.122:1213
-        List<String> childrens = ZookeeperUtil.getChildren(zooKeeper,serviceNode,null);
+        List<String> childrens = ZookeeperUtil.getChildren(zooKeeper,serviceNode,new UpAndDownWatcher());
         // 获取了所有的可用的服务列表
         List<InetSocketAddress> inetSocketAddresses = childrens.stream().map(ipString -> {
             String[] ipAndPort = ipString.split(":");

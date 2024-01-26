@@ -121,9 +121,6 @@ public class ConsistentHashBalancer extends AbstractLoadBalancer {
             }
             return res;
         }
-        @Override
-        public void reBalance() {
 
-        }
     }
 }
