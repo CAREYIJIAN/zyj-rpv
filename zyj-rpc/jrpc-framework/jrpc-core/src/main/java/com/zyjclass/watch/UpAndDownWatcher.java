@@ -26,7 +26,7 @@ public class UpAndDownWatcher implements Watcher {
                 log.debug("检测到服务【{}】下有节点上/下线，将重新拉取服务列表..",event.getPath());
             }
             String serviceName = getServiceName(event.getPath());
-            Registry registry = JrpcBootstrap.getInstance().getRegistry();
+            Registry registry = JrpcBootstrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
             List<InetSocketAddress> addresses = registry.lookUp(serviceName);
             //处理上线的节点
             for (InetSocketAddress address : addresses) {
@@ -52,7 +52,7 @@ public class UpAndDownWatcher implements Watcher {
             }
 
             //获得负载均衡器，进行重新loadBalance
-            LoadBalancer lodaBalancer = JrpcBootstrap.LODA_BALANCER;
+            LoadBalancer lodaBalancer = JrpcBootstrap.getInstance().getConfiguration().getLoadBalancer();
             lodaBalancer.reLoadBalance(serviceName,addresses);
 
         }

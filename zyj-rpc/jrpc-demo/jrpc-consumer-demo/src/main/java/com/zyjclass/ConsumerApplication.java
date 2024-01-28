@@ -28,9 +28,19 @@ public class ConsumerApplication {
                 .reference(reference); //要调用的接口定义
         //获取代理对象
         HelloJrpc helloJrpc = reference.get();
-        for (int i = 0; i < 3; i++){
-            String hi = helloJrpc.sayHi("Hi");
-            log.info("syHi-->{}",hi);
+
+        while (true){
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+            for (int i = 0; i < 5; i++){
+                String hi = helloJrpc.sayHi("Hi");
+                log.info("syHi-->{}",hi);
+            }
         }
 
     }

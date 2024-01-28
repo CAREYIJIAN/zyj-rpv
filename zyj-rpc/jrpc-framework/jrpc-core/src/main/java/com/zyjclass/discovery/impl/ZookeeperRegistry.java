@@ -46,7 +46,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         //服务提供方的端口一般自己设定，我们还需要一个获取ip的方法
         //ip我们通常是需要一个局域网ip，不是127.0.0.1，也不是ipv6
         //TODO 后续处理端口问题（全局保存端口的地方）
-        String node = parentNode + "/" + NetUtils.getIp() + ":" + JrpcBootstrap.PORT;
+        String node = parentNode + "/" + NetUtils.getIp() + ":" + JrpcBootstrap.getInstance().getConfiguration().getPort();
         if (!ZookeeperUtil.exists(zooKeeper,node,null)){
             ZookeeperNode zookeeperNode = new ZookeeperNode(node,null);
             ZookeeperUtil.createNode(zooKeeper,zookeeperNode,null, CreateMode.EPHEMERAL);

@@ -6,7 +6,7 @@ package com.zyjclass;
  */
 public class ServiceConfig<T> {
 
-    private Class<T> interfaceProvider;
+    private Class<?> interfaceProvider;
     private Object ref;
 
     public Object getRef() {
@@ -17,11 +17,11 @@ public class ServiceConfig<T> {
         this.ref = ref;
     }
 
-    public void setInterface(Class<T> interfaceProvider) {
+    public void setInterface(Class<?> interfaceProvider) {
         this.interfaceProvider = interfaceProvider;
     }
 
-    public Class<T> getInterface() {
+    public Class<?> getInterface() {
         return interfaceProvider;
     }
 }

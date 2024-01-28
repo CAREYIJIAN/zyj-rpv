@@ -59,10 +59,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .parametersValue(args).returnType(method.getReturnType()).build();
 
         JrpcRequest jrpcRequest = JrpcRequest.builder()
-                .requestId(JrpcBootstrap.ID_GENERATOR.getId())
-                .compressType(CompressorFactory.getCompressor(JrpcBootstrap.COMPRESS_TYPE).getCode())
+                .requestId(JrpcBootstrap.getInstance().getConfiguration().getIdGenerator().getId())
+                .compressType(CompressorFactory.getCompressor(JrpcBootstrap.getInstance().getConfiguration().getCompressType()).getCode())
                 .requestType(RequestType.REQUEST.getId())
-                .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.SERIALIZE_TYPE).getCode())
+                .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.getInstance().getConfiguration().getSerializeType()).getCode())
                 .timeStamp(new Date().getTime())
                 .requestPayload(requestPayload).build();
 
@@ -71,7 +71,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
         /*-------------------------------------------发现服务建立通道---------------------------------------------*/
         //1.进入负载均衡器，发现服务，从注册中心寻找服务列表，传入服务的名字,返回一个服务
-        InetSocketAddress address = JrpcBootstrap.LODA_BALANCER.selectServiceAddress(interfaceRef.getName());
+        InetSocketAddress address = JrpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectServiceAddress(interfaceRef.getName());
 
         if (log.isDebugEnabled()){
             log.debug("服务调用方发现了服务【{}】的可用主机【{}】", interfaceRef, address);

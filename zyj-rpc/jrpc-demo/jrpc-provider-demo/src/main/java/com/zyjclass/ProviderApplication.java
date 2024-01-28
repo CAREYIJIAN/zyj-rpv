@@ -27,7 +27,8 @@ public class ProviderApplication {
                 .application("jrpc-provider") //名称
                 .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))  //配置注册中心
                 .protocol(new ProtocolConfig("jdk"))  //配置协议
-                .publish(service) //发布服务
+                //.publish(service) //发布服务
+                .scan("com.zyjclass")//扫包批量发布
                 .start();  //启动服务
 
     }

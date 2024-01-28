@@ -1,5 +1,6 @@
 package com.zyjclass;
 
+import com.zyjclass.annotation.JrpcApi;
 import com.zyjclass.channelhandler.handler.JrpcRequestDecoder;
 import com.zyjclass.channelhandler.handler.JrpcResponseEncoder;
 import com.zyjclass.channelhandler.handler.MethodCallHandler;
@@ -20,53 +21,49 @@ import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.server.Request;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 
 /**
  * @author CAREYIJIAN$
  * @date 2024/1/17$
  */
+//lombok可以根据你加的相关注解，在编译的时候增强你的代码，如果没有引入lombok加日志要这么写
+//private static final Logger logger = LoggerFactory.getLogger(JrpcBootstrap.class);
 @Slf4j
 public class JrpcBootstrap {
-    //lombok可以根据你加的相关注解，在编译的时候增强你的代码，如果没有引入lombok加日志要这么写
-    //private static final Logger logger = LoggerFactory.getLogger(JrpcBootstrap.class);
-
-
-    /*-----------------------------------通用核心api-------------------------------------*/
     //JrpcBootstrap是个单例，每个应用程序只有一个实例
     private static final JrpcBootstrap jrpcBootstrap = new JrpcBootstrap();
-    public static final int PORT = 8092;
+    //全局的配置中心
+    private Configuration configuration;
+    //保存request对象，可以到当前线程中随时获取
     public static final ThreadLocal<JrpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
-    //定义相关的基础配置
-    public static String SERIALIZE_TYPE = "jdk";
-    public static String COMPRESS_TYPE = "gzip";
-    private String appName = "default";
-    private RegistryConfig registryConfig;
-    private ProtocolConfig protocolConfig;
-    public static final IdGenerator ID_GENERATOR = new IdGenerator(1,2);
-    //private ZooKeeper zooKeeper; //维护一个zookeeper实例
-    //注册中心
-    private Registry registry;
-    public static LoadBalancer LODA_BALANCER;
     //维护已经发布且暴露的服务列表 key->interface的全限定名 value-> ServiceConfig<?>
     public static final Map<String, ServiceConfig<?>> SERVICE_MAP = new ConcurrentHashMap<>(16);
 
     //连接的缓存,ps:如果使用InetSocketAddress这样的类做key，一定要看他有没有重写equals方法和toString
     public static final Map<InetSocketAddress, Channel> CHANNEL_MAP = new ConcurrentHashMap<>(16);
+    //存储响应时间和对应的通道
     public static final TreeMap<Long, Channel> ANSWER_TIME_CHANNEL_MAP = new TreeMap<>();
 
     //定义全局对外挂起的completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_MAP = new ConcurrentHashMap<>(128);
 
+    /*-----------------------------------通用核心api-------------------------------------*/
     private JrpcBootstrap(){
         //构造启动引导程序，时要做一些初始化的事情。
-
+        configuration = new Configuration();
     }
     public static JrpcBootstrap getInstance() {
         return jrpcBootstrap;
@@ -78,7 +75,7 @@ public class JrpcBootstrap {
      * @return this（当前实例）
      */
     public JrpcBootstrap application(String appName) {
-        this.appName = appName;
+        configuration.setAppName(appName);
         return this;
     }
 
@@ -90,11 +87,17 @@ public class JrpcBootstrap {
     public JrpcBootstrap registry(RegistryConfig registryConfig) {
         /*这里维护一个zookeeper实例，但是这样就会将zookeeper和当前工程耦合,我们希望是可以扩展更多种不同的实现
         zooKeeper = ZookeeperUtil.createZookeeper();*/
-
-        //尝试使用registryConfig获取一个注册中心，有点工厂设计模式的意思了
-        this.registry = registryConfig.getRegistry();
-        //TODO 待修改
-        JrpcBootstrap.LODA_BALANCER = new MinimumResponseTimeLoadBalancer();
+        //可以尝试使用registryConfig获取一个注册中心，有点工厂设计模式的意思了
+        configuration.setRegistryConfig(registryConfig);
+        return this;
+    }
+    /**
+     * 用来配置一个负载均衡策略
+     * @param loadBalancer（负载均衡器）
+     * @return this（当前实例）
+     */
+    public JrpcBootstrap loadBalancer(LoadBalancer loadBalancer) {
+        configuration.setLoadBalancer(loadBalancer);
         return this;
     }
 
@@ -104,7 +107,7 @@ public class JrpcBootstrap {
      * @return this（当前实例）
      */
     public JrpcBootstrap protocol(ProtocolConfig protocalConfig) {
-        this.protocolConfig = protocalConfig;
+        configuration.setProtocolConfig(protocalConfig);
         if (log.isDebugEnabled()){
             log.debug("当前工程使用了：{}协议进行序列化",protocalConfig.toString());
         }
@@ -119,7 +122,7 @@ public class JrpcBootstrap {
      */
     public JrpcBootstrap publish(ServiceConfig<?> service) {
         //我们抽象了注册中心的概念，使用注册中心的一个实现完成注册
-        registry.register(service);
+        configuration.getRegistryConfig().getRegistry().register(service);
 
         //当服务调用方调用接口、方法名、具体的方法参数列表发起调用，如何提供和选择实现？
         //方案：1.new一个 2.spring beanFactory.getBean(Class) 3.自己维护映射关系
@@ -152,7 +155,7 @@ public class JrpcBootstrap {
             //配置服务器
             b.group(boss,worker)
                     .channel(NioServerSocketChannel.class)//通过工厂方法设计模式实例化一个channel
-                    .localAddress(new InetSocketAddress(PORT))
+                    .localAddress(new InetSocketAddress(configuration.getPort()))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -192,7 +195,7 @@ public class JrpcBootstrap {
         //此方法中要拿到相关配置项-注册中心
         //配置reference，将来调用get方法时生成代理对象
         //1.reference需要一个注册中心
-        reference.setRegistry(registry);
+        reference.setRegistry(configuration.getRegistryConfig().getRegistry());
 
         return this;
     }
@@ -204,7 +207,7 @@ public class JrpcBootstrap {
      * @return
      */
     public JrpcBootstrap serialize(String serializeType) {
-        SERIALIZE_TYPE = serializeType;
+        configuration.setSerializeType(serializeType);
         if (log.isDebugEnabled()){
             log.debug("配置了序列化的方式为【{}】",serializeType);
         }
@@ -217,14 +220,109 @@ public class JrpcBootstrap {
      * @return
      */
     public JrpcBootstrap compress(String compressType) {
-        COMPRESS_TYPE = compressType;
+        configuration.setCompressType(compressType);
         if (log.isDebugEnabled()){
             log.debug("配置了压缩的算法为【{}】",compressType);
         }
         return this;
     }
 
-    public Registry getRegistry() {
-        return registry;
+    /**
+     * 扫描包，进行批量注册
+     * @param packageName 包名
+     * @return
+     */
+    public JrpcBootstrap scan(String packageName) {
+        //需要通过packageName获取其下的所有的类的权限定名称
+        List<String> classNames = getAllClassNames(packageName);
+        //通过反射获取他的接口，构建具体的实现
+        List<Class<?>> classes = classNames.stream().map(className -> {
+                    try {
+                        return Class.forName(className);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).filter(clazz -> clazz.getAnnotation(JrpcApi.class) != null)
+                .collect(Collectors.toList());
+
+        for (Class<?> clazz : classes) {
+            //获取他的接口
+            Class<?>[] interfaces = clazz.getInterfaces();
+            Object instance = null;
+            try {
+                instance = clazz.getConstructor().newInstance();
+            }catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+
+            for (Class<?> anInterface : interfaces) {
+                ServiceConfig<?> serviceConfig = new ServiceConfig<>();
+                serviceConfig.setInterface(anInterface);
+                serviceConfig.setRef(instance);
+                if (log.isDebugEnabled()){
+                    log.debug("---->已经通过包扫描，将服务【{}】发布",anInterface);
+                }
+                //进行发布
+                publish(serviceConfig);
+            }
+        }
+        return this;
+    }
+
+    private List<String> getAllClassNames(String packageName) {
+        //1.通过packageName获得绝对路径
+        //com.zyjclass.xxx.yyy -> E://xxx/xxx/xxx/com/zyjclass/xxx/yyy
+        String basePath = packageName.replaceAll("\\.", "/");
+        URL url = ClassLoader.getSystemClassLoader().getResource(basePath);
+        if (url == null){
+            throw new RuntimeException("包扫描时，发现路径不存在");
+        }
+        String absolutePath = url.getPath();
+        List<String> classNames = new ArrayList<>();
+        classNames = recursionFile(absolutePath,classNames,basePath);
+        return classNames;
+    }
+
+    private List<String> recursionFile(String absolutePath, List<String> classNames, String basePath) {
+        //获取文件
+        File file = new File(absolutePath);
+        //判断文件是否是文件夹
+        if (file.isDirectory()){
+            //找到文件夹的所有文件
+            File[] children = file.listFiles(pathname -> pathname.isDirectory() || pathname.getPath().contains(".class"));
+            if (children == null || children.length == 0){
+                return classNames;
+            }
+            for (File child : children) {
+                if (child.isDirectory()){
+                    //递归调用
+                    recursionFile(child.getAbsolutePath(),classNames,basePath);
+                }else {
+                    //文件 --》 类的权限定名称
+                    String className = getClassNameByAbsolutePath(child.getAbsolutePath(),basePath);
+                    classNames.add(className);
+                }
+            }
+        }else {
+            //文件 --》 类的权限定名称
+            String className = getClassNameByAbsolutePath(absolutePath,basePath);
+            classNames.add(className);
+        }
+        return classNames;
+    }
+
+    private String getClassNameByAbsolutePath(String absolutePath, String basePath) {
+        //E:\project\zyjclass-jrpc\.....\com\zyjclass\serialize\xxx.class  ---->  com.zyjclass.serialize.xxx
+
+        String fileName = absolutePath
+                .substring(absolutePath.indexOf(basePath.replaceAll("/","\\\\")))
+                .replaceAll("\\\\",".");
+
+        fileName = fileName.substring(0,fileName.indexOf(".class"));
+        return fileName;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
     }
 }
