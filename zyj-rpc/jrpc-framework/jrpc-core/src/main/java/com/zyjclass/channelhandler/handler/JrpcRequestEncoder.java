@@ -58,11 +58,11 @@ public class JrpcRequestEncoder extends MessageToByteEncoder<JrpcRequest> {
         //  方案二：面向抽象编程（推荐）
         byte[] body = null;
         if (jrpcRequest.getRequestPayload() != null){
-            Serializer serializer = SerializerFactory.getSerializer(jrpcRequest.getSerializeType()).getSerializer();
+            Serializer serializer = SerializerFactory.getSerializer(jrpcRequest.getSerializeType()).getImpl();
             body = serializer.serialize(jrpcRequest.getRequestPayload());
 
             //2.根据配置的压缩方式进行压缩
-            Compressor compressor = CompressorFactory.getCompressor(jrpcRequest.getCompressType()).getCompressor();
+            Compressor compressor = CompressorFactory.getCompressor(jrpcRequest.getCompressType()).getImpl();
             body = compressor.compress(body);
         }
 

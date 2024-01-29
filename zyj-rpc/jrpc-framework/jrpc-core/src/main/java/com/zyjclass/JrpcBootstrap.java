@@ -4,13 +4,10 @@ import com.zyjclass.annotation.JrpcApi;
 import com.zyjclass.channelhandler.handler.JrpcRequestDecoder;
 import com.zyjclass.channelhandler.handler.JrpcResponseEncoder;
 import com.zyjclass.channelhandler.handler.MethodCallHandler;
+import com.zyjclass.config.Configuration;
 import com.zyjclass.core.HeartbeatDetector;
-import com.zyjclass.discovery.Registry;
 import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.loadbalancer.LoadBalancer;
-import com.zyjclass.loadbalancer.impl.ConsistentHashBalancer;
-import com.zyjclass.loadbalancer.impl.MinimumResponseTimeLoadBalancer;
-import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
 import com.zyjclass.transport.message.JrpcRequest;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -19,10 +16,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.server.Request;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -101,18 +96,6 @@ public class JrpcBootstrap {
         return this;
     }
 
-    /**
-     * 用来配置序列化协议
-     * @param protocalConfig（序列化协议的封装）
-     * @return this（当前实例）
-     */
-    public JrpcBootstrap protocol(ProtocolConfig protocalConfig) {
-        configuration.setProtocolConfig(protocalConfig);
-        if (log.isDebugEnabled()){
-            log.debug("当前工程使用了：{}协议进行序列化",protocalConfig.toString());
-        }
-        return this;
-    }
 
     /*-----------------------------------服务提供方相关api-------------------------------------*/
     /**

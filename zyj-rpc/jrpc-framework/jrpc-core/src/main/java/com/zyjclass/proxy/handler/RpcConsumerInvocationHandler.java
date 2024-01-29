@@ -63,7 +63,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .compressType(CompressorFactory.getCompressor(JrpcBootstrap.getInstance().getConfiguration().getCompressType()).getCode())
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType(SerializerFactory.getSerializer(JrpcBootstrap.getInstance().getConfiguration().getSerializeType()).getCode())
-                .timeStamp(new Date().getTime())
+                .timeStamp(System.currentTimeMillis())
                 .requestPayload(requestPayload).build();
 
         //将请求存入本地线程，再合适的时候调用remove方法

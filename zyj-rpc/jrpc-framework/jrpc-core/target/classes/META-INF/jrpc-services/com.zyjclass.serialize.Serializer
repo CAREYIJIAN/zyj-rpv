@@ -1,0 +1,2 @@
+1-jdk-com.zyjclass.serialize.impl.JdkSerializer
+3-hessian-com.zyjclass.serialize.impl.HessianSerializer

@@ -55,11 +55,11 @@ public class JrpcResponseEncoder extends MessageToByteEncoder<JrpcResponse> {
         if (jrpcResponse.getBody() != null){
             //对响应做序列化
             Serializer serializer = SerializerFactory
-                    .getSerializer(jrpcResponse.getSerializeType()).getSerializer();
+                    .getSerializer(jrpcResponse.getSerializeType()).getImpl();
             body = serializer.serialize(jrpcResponse.getBody());
 
             //压缩
-            Compressor compressor = CompressorFactory.getCompressor(jrpcResponse.getCompressType()).getCompressor();
+            Compressor compressor = CompressorFactory.getCompressor(jrpcResponse.getCompressType()).getImpl();
             body = compressor.compress(body);
         }
 

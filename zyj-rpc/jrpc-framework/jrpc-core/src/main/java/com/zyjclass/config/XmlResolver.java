@@ -1,20 +1,17 @@
-package com.zyjclass;
+package com.zyjclass.config;
 
-
+import com.zyjclass.IdGenerator;
+import com.zyjclass.ProtocolConfig;
 import com.zyjclass.compress.Compressor;
-import com.zyjclass.compress.impl.GzipCompressor;
+import com.zyjclass.compress.CompressorFactory;
 import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.loadbalancer.LoadBalancer;
-import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
 import com.zyjclass.serialize.Serializer;
-import com.zyjclass.serialize.impl.JdkSerializer;
-import lombok.Data;
+import com.zyjclass.serialize.SerializerFactory;
 import lombok.extern.slf4j.Slf4j;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,46 +20,21 @@ import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-
+import java.util.Objects;
 
 /**
- * 全局的配置类，代码配置 ———》xml配置———》spi配置———》默认项
  * @author CAREYIJIAN$
- * @date 2024/1/27$
+ * @date 2024/1/28$
  */
-@Data
 @Slf4j
-public class Configuration {
-    //端口号（配置信息）
-    private int port = 8090;
-    //序列化协议（配置信息）
-    private String serializeType = "jdk";
-    private Serializer serializer = new JdkSerializer();
-    //压缩使用的协议（配置信息）
-    private String compressType = "gzip";
-    private Compressor compressor = new GzipCompressor();
-    //应用程序的名字（配置信息）
-    private String appName = "default";
-    //配置的注册中心（配置信息）
-    private RegistryConfig registryConfig = new RegistryConfig("zookeeper://127.0.0.1:2181");
-    //序列化协议（配置信息）
-    private ProtocolConfig protocolConfig = new ProtocolConfig("jdk");
-    //id生成器（配置信息）
-    private IdGenerator idGenerator = new IdGenerator(1,2);
-    //负载均衡策略（配置信息）
-    private LoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+public class XmlResolver {
 
-    //读xml
-    public Configuration(){
-        //读取xml获得上边的信息
-        loadFromXml(this);
-    }
 
     /**
      * 从配置文件读取配置信息 使用dom4j或jdk自带的
      * @param configuration 配置实例
      */
-    private void loadFromXml(Configuration configuration) {
+    public void loadFromXml(Configuration configuration) {
         try {
             //1.创建一个document
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -82,13 +54,16 @@ public class Configuration {
             configuration.setLoadBalancer(resolveLoadBalancer(doc, xPath));
             configuration.setSerializeType(resolveSerializeType(doc, xPath));
             configuration.setCompressType(resolveCompressType(doc, xPath));
-            configuration.setCompressor(resolveCompressor(doc, xPath));
-            configuration.setProtocolConfig(new ProtocolConfig(configuration.serializeType));
-            configuration.setSerializer(resolveSerializer(doc, xPath));
+            //配置新的压缩和序列化方式，并将其纳入工厂中
+            ObjectWrapper<Serializer> serializerObjectWrapper = resolveSerializer(doc, xPath);
+            SerializerFactory.addSerializer(serializerObjectWrapper);
+            ObjectWrapper<Compressor> compressorObjectWrapper = resolveCompressor(doc, xPath);
+            CompressorFactory.addCompressor(compressorObjectWrapper);
+
 
             //如果有新增的标签这里继续修改
 
-        }catch (ParserConfigurationException | SAXException | IOException  e){
+        }catch (ParserConfigurationException | SAXException | IOException e){
             log.info("未发现相关配置文件或解析配置文件的时候发生了异常，将使用默认配置",e);
         }
     }
@@ -99,22 +74,26 @@ public class Configuration {
      * @param xPath 解析器
      * @return
      */
-    private Serializer resolveSerializer(Document doc, XPath xPath) {
+    private ObjectWrapper<Serializer> resolveSerializer(Document doc, XPath xPath) {
         String expression = "/configuration/serializer";
         Serializer serializer = parseObject(doc, xPath, expression, null);
-        return serializer;
+        byte code = Byte.valueOf(Objects.requireNonNull(parseString(doc, xPath, expression, "code")));
+        String type = parseString(doc, xPath, expression,"type");
+        return new ObjectWrapper(code,type,serializer);
     }
 
     /**
      * 解析压缩器（具体实现）
      * @param doc 文档
      * @param xPath 解析器
-     * @return
+     * @return ObjectWrapper<Compressor>
      */
-    private Compressor resolveCompressor(Document doc, XPath xPath) {
+    private ObjectWrapper<Compressor> resolveCompressor(Document doc, XPath xPath) {
         String expression = "/configuration/compressor";
         Compressor compressor = parseObject(doc, xPath, expression, null);
-        return compressor;
+        byte code = Byte.valueOf(Objects.requireNonNull(parseString(doc, xPath, expression, "code")));
+        String type = parseString(doc, xPath, expression,"type");
+        return new ObjectWrapper(code,type,compressor);
     }
 
     /**
@@ -280,4 +259,6 @@ public class Configuration {
         }
         return null;
     }
+
+
 }

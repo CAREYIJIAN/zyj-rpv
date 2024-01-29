@@ -100,10 +100,10 @@ public class JrpcResponseDecoder extends LengthFieldBasedFrameDecoder {
         byteBuf.readBytes(body);
         if (body.length > 0){
             //有了字节数组之后就可以解压缩、反序列化
-            Compressor compressor = CompressorFactory.getCompressor(compressType).getCompressor();
+            Compressor compressor = CompressorFactory.getCompressor(compressType).getImpl();
             body = compressor.decompress(body);
             //反序列化
-            Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+            Serializer serializer = SerializerFactory.getSerializer(serializeType).getImpl();
             Object deserialize = serializer.deserialize(body, Object.class);
             jrpcResponse.setBody(deserialize);
         }
