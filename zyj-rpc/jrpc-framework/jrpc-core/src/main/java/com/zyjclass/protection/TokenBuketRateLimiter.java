@@ -21,7 +21,7 @@ public class TokenBuketRateLimiter {
     private final int rate;
 
     //上一次放令牌的时间
-    private Long lastTokenTime = System.currentTimeMillis();
+    private Long lastTokenTime;
 
     public TokenBuketRateLimiter(int capacity, int rate){
         this.capacity = capacity;
