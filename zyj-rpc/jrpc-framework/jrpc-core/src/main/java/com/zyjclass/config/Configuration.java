@@ -5,9 +5,14 @@ import com.zyjclass.IdGenerator;
 import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.loadbalancer.LoadBalancer;
 import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
+import com.zyjclass.protection.RateLimiter;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -32,6 +37,8 @@ public class Configuration {
     private IdGenerator idGenerator = new IdGenerator(1,2);
     //负载均衡策略（配置信息）
     private LoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+    //限流器,为每一个ip（配置信息）
+    private Map<SocketAddress, RateLimiter> everyIpRateLimiter = new ConcurrentHashMap<>();
 
     //读xml
     public Configuration(){

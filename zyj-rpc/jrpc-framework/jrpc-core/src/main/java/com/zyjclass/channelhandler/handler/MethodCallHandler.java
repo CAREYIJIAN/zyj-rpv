@@ -4,16 +4,22 @@ import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.ServiceConfig;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.enumeration.RespCode;
+import com.zyjclass.protection.RateLimiter;
+import com.zyjclass.protection.TokenBuketRateLimiter;
 import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
 import com.zyjclass.transport.message.RequestPayload;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author CAREYIJIAN$
@@ -23,34 +29,51 @@ import java.util.Date;
 public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, JrpcRequest jrpcRequest) throws Exception {
-        //1.获取负载内容
-        RequestPayload requestPayload = jrpcRequest.getRequestPayload();
-
-        //2.根据负载内容进行方法调用
-        Object object = null;
-        if (!(jrpcRequest.getRequestType() == RequestType.HERT_BEAT.getId())){
-            object = callTargetMethod(requestPayload);
-            if (log.isDebugEnabled()){
-                log.debug("请求【{}】已经在服务端完成方法调用。",jrpcRequest.getRequestId());
-            }
-        }
-
-
-        //3.封装响应
+        // 先封装统一封装的内容
         JrpcResponse jrpcResponse = new JrpcResponse();
-        jrpcResponse.setCode(RespCode.SUCCESS.getCode());
         jrpcResponse.setRequestId(jrpcRequest.getRequestId());
         jrpcResponse.setCompressType(jrpcRequest.getCompressType());
         jrpcResponse.setSerializeType(jrpcRequest.getSerializeType());
-        jrpcResponse.setBody(object);
         jrpcResponse.setTimeStamp(new Date().getTime());
 
+        //限流策略：针对每个ip进行限流
+        Channel channel = channelHandlerContext.channel();
+        SocketAddress socketAddress = channel.remoteAddress();
+        Map<SocketAddress, RateLimiter> everyIpRateLimiter = JrpcBootstrap.getInstance().getConfiguration().getEveryIpRateLimiter();
+        RateLimiter rateLimiter = everyIpRateLimiter.get(socketAddress);
+        if (rateLimiter == null){
+            rateLimiter = new TokenBuketRateLimiter(500,300);
+            everyIpRateLimiter.put(socketAddress,rateLimiter);
+        }
+        boolean allowRequest = rateLimiter.allowRequest();
 
+        if (!allowRequest){  //限流
+            //需要封装响应并且返回了
+            jrpcResponse.setCode(RespCode.RATE_LIMIT.getCode());
+
+        } else if ((jrpcRequest.getRequestType() == RequestType.HERT_BEAT.getId())){  //处理心跳
+            jrpcResponse.setCode(RespCode.SUCCESS_HEART_BEAT.getCode());
+        }else { //正常调用
+            /**-----------------------------------------具体的调用过程------------------------------------------*/
+            //1.获取负载内容
+            RequestPayload requestPayload = jrpcRequest.getRequestPayload();
+
+            //2.根据负载内容进行方法调用
+            try {
+                Object object = callTargetMethod(requestPayload);
+                if (log.isDebugEnabled()) {
+                    log.debug("请求【{}】已经在服务端完成方法调用。", jrpcRequest.getRequestId());
+                }
+                //3.封装响应
+                jrpcResponse.setCode(RespCode.SUCCESS.getCode());
+                jrpcResponse.setBody(object);
+            }catch (Exception e){
+                log.error("请求编号为【{}】在调用过程中发生异常。", jrpcRequest.getRequestId());
+                jrpcResponse.setCode(RespCode.FAIL.getCode());
+            }
+        }
         //4.写出响应
-        channelHandlerContext.channel().writeAndFlush(jrpcResponse);
-
-
-
+        channel.writeAndFlush(jrpcResponse);
     }
 
     private Object callTargetMethod(RequestPayload requestPayload) {

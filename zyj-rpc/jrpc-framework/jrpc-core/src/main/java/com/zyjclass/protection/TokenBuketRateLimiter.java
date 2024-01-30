@@ -5,7 +5,7 @@ package com.zyjclass.protection;
  * @author CAREYIJIAN$
  * @date 2024/1/29$
  */
-public class TokenBuketRateLimiter {
+public class TokenBuketRateLimiter implements RateLimiter {
 
     //思考：令牌桶用什么？list还是map   令牌用什么？String还是Object
 
@@ -34,6 +34,7 @@ public class TokenBuketRateLimiter {
      * 判断请求是否可以放行
      * @return
      */
+    @Override
     public synchronized boolean allowRequest(){
         //1、给令牌桶添加令牌
         //计算从上一次到现在的时间间隔需要添加的令牌数
