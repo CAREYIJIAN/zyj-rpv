@@ -90,11 +90,6 @@ public class JrpcResponseDecoder extends LengthFieldBasedFrameDecoder {
         jrpcResponse.setRequestId(requestId);
         jrpcResponse.setTimeStamp(timeStamp);
 
-        //注意：心跳没有负载，判断后直接返回
-        /*if (responseCode == RequestType.HERT_BEAT.getId()){
-            return jrpcResponse;
-        }*/
-
         int bodyLength = fullLength - headLength;
         byte[] body = new byte[bodyLength];
         byteBuf.readBytes(body);

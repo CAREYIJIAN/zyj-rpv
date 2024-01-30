@@ -30,14 +30,14 @@ public class ConsumerApplication {
         HelloJrpc helloJrpc = reference.get();
 
         while (true){
-            try {
+/*            try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");*/
 
-            for (int i = 0; i < 5; i++){
+            for (int i = 0; i < 50; i++){
                 String hi = helloJrpc.sayHi("Hi");
                 log.info("syHi-->{}",hi);
             }
