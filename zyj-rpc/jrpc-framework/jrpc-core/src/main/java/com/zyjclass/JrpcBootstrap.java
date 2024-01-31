@@ -6,6 +6,7 @@ import com.zyjclass.channelhandler.handler.JrpcResponseEncoder;
 import com.zyjclass.channelhandler.handler.MethodCallHandler;
 import com.zyjclass.config.Configuration;
 import com.zyjclass.core.HeartbeatDetector;
+import com.zyjclass.core.JrpcShutdownHook;
 import com.zyjclass.discovery.RegistryConfig;
 import com.zyjclass.loadbalancer.LoadBalancer;
 import com.zyjclass.transport.message.JrpcRequest;
@@ -129,6 +130,12 @@ public class JrpcBootstrap {
      * 启动netty服务
      */
     public void start() {
+        //注册一个关闭应用程序的钩子函数，以用来服务端优雅的关机
+        Runtime.getRuntime().addShutdownHook(new JrpcShutdownHook());
+
+
+
+
         //创建eventloop，老板只负责处理请求，之后会将请求分发至worker
         EventLoopGroup boss = new NioEventLoopGroup(2);
         EventLoopGroup worker = new NioEventLoopGroup(10);

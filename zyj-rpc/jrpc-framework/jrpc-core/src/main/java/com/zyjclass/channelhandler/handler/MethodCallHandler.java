@@ -2,6 +2,7 @@ package com.zyjclass.channelhandler.handler;
 
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.ServiceConfig;
+import com.zyjclass.core.ShutDownHolder;
 import com.zyjclass.enumeration.RequestType;
 import com.zyjclass.enumeration.RespCode;
 import com.zyjclass.protection.RateLimiter;
@@ -29,6 +30,8 @@ import java.util.Map;
 public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, JrpcRequest jrpcRequest) throws Exception {
+        //获得通道
+        Channel channel = channelHandlerContext.channel();
         // 先封装统一封装的内容
         JrpcResponse jrpcResponse = new JrpcResponse();
         jrpcResponse.setRequestId(jrpcRequest.getRequestId());
@@ -36,13 +39,23 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         jrpcResponse.setSerializeType(jrpcRequest.getSerializeType());
         jrpcResponse.setTimeStamp(new Date().getTime());
 
+        //查看关闭的挡板是否打开，如果已经打开，返回一个错误响应
+        if (ShutDownHolder.BAFFLE.get()){
+            jrpcResponse.setCode(RespCode.CLOSING.getCode());
+            channel.writeAndFlush(jrpcResponse);
+            return;
+        }
+
+        //计数器加一
+        ShutDownHolder.REQUEST_COUNTER.increment();
+
+
         //限流策略：针对每个ip进行限流
-        Channel channel = channelHandlerContext.channel();
         SocketAddress socketAddress = channel.remoteAddress();
         Map<SocketAddress, RateLimiter> everyIpRateLimiter = JrpcBootstrap.getInstance().getConfiguration().getEveryIpRateLimiter();
         RateLimiter rateLimiter = everyIpRateLimiter.get(socketAddress);
         if (rateLimiter == null){
-            rateLimiter = new TokenBuketRateLimiter(20,20);
+            rateLimiter = new TokenBuketRateLimiter(10,10);
             everyIpRateLimiter.put(socketAddress,rateLimiter);
         }
         boolean allowRequest = rateLimiter.allowRequest();
@@ -74,6 +87,9 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         }
         //4.写出响应
         channel.writeAndFlush(jrpcResponse);
+
+        //计数器减一
+        ShutDownHolder.REQUEST_COUNTER.decrement();
     }
 
     private Object callTargetMethod(RequestPayload requestPayload) {

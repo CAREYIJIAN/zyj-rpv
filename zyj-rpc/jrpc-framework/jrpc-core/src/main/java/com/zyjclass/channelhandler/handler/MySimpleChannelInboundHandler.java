@@ -3,7 +3,9 @@ package com.zyjclass.channelhandler.handler;
 import com.zyjclass.JrpcBootstrap;
 import com.zyjclass.enumeration.RespCode;
 import com.zyjclass.exceptions.ResponseException;
+import com.zyjclass.loadbalancer.LoadBalancer;
 import com.zyjclass.protection.CircuitBreaker;
+import com.zyjclass.transport.message.JrpcRequest;
 import com.zyjclass.transport.message.JrpcResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -62,6 +64,22 @@ public class MySimpleChannelInboundHandler extends SimpleChannelInboundHandler<J
             if (log.isDebugEnabled()){
                 log.debug("已寻找到编号为【{}】的completableFuture，处理心跳检测",jrpcResponse.getRequestId());
             }
+        }else if (code == RespCode.CLOSING.getCode()){
+            circuitBreaker.recordErrorRequest();
+            completableFuture.complete(null);
+            if (log.isDebugEnabled()){
+                log.debug("当前id为【{}】的请求，访问被拒绝，目标服务器正处于关闭中，响应码：【{}】",jrpcResponse.getRequestId(),code);
+            }
+
+            //修正负载均衡器
+            //从健康列表中移除
+            JrpcBootstrap.CHANNEL_MAP.remove(socketAddress);
+            //找到负载均衡器进行reLoadBalance
+            LoadBalancer loadBalancer = JrpcBootstrap.getInstance().getConfiguration().getLoadBalancer();
+            JrpcRequest jrpcRequest = JrpcBootstrap.REQUEST_THREAD_LOCAL.get();
+            loadBalancer.reLoadBalance(jrpcRequest.getRequestPayload().getInterfaceName(),JrpcBootstrap.CHANNEL_MAP.keySet().stream().toList());
+
+            throw new ResponseException(code, RespCode.CLOSING.getDesc());
         }
     }
 

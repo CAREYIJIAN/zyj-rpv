@@ -14,7 +14,8 @@ public enum RespCode {
     SUCCESS_HEART_BEAT((byte) 21,"心跳检测成功返回"),
     RATE_LIMIT((byte) 31,"服务端被限流"),
     RESOURCE_NOT_FOUND((byte) 44,"请求的资源不存在"),
-    FAIL((byte) 50,"服务端方法调用失败");
+    FAIL((byte) 50,"服务端方法调用失败"),
+    CLOSING((byte) 51,"服务端正在关闭中");
     private byte code;
     private String desc;
 
