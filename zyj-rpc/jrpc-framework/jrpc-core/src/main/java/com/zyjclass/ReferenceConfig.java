@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 public class ReferenceConfig<T> {
     private Class<T> interfaceRef;
     private Registry registry;
+    //分组信息
+    private String group;
 
     public Class<T> getInterface() {
         return interfaceRef;
@@ -42,7 +44,7 @@ public class ReferenceConfig<T> {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Class<T>[] classes  = new Class[]{interfaceRef};
         //使用动态代理生成代理对象
-        InvocationHandler handler = new RpcConsumerInvocationHandler(registry,interfaceRef);
+        InvocationHandler handler = new RpcConsumerInvocationHandler(registry,interfaceRef,group);
         Object helloProxy = Proxy.newProxyInstance(classLoader, classes, handler);
         return (T)helloProxy;
     }
@@ -53,5 +55,13 @@ public class ReferenceConfig<T> {
 
     public Registry getRegistry() {
         return registry;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getGroup() {
+        return group;
     }
 }

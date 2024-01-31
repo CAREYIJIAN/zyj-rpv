@@ -7,7 +7,7 @@ import com.zyjclass.annotation.JrpcApi;
  * @author CAREYIJIAN$
  * @date 2024/1/17$
  */
-@JrpcApi
+@JrpcApi(group = "primary")
 public class HelloJrpcImpl implements HelloJrpc {
     @Override
     public String sayHi(String msg) {

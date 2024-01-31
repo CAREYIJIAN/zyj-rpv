@@ -27,7 +27,7 @@ public class UpAndDownWatcher implements Watcher {
             }
             String serviceName = getServiceName(event.getPath());
             Registry registry = JrpcBootstrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
-            List<InetSocketAddress> addresses = registry.lookUp(serviceName);
+            List<InetSocketAddress> addresses = registry.lookUp(serviceName, JrpcBootstrap.getInstance().getConfiguration().getGroup());
             //处理上线的节点
             for (InetSocketAddress address : addresses) {
                 //上线的节点会  在address  不在CHANNEL_MAP

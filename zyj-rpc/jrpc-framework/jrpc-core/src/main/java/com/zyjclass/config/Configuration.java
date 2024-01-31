@@ -7,6 +7,7 @@ import com.zyjclass.loadbalancer.LoadBalancer;
 import com.zyjclass.loadbalancer.impl.RoundRobinLoadBalancer;
 import com.zyjclass.protection.CircuitBreaker;
 import com.zyjclass.protection.RateLimiter;
+import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,10 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/1/27$
  */
 @Data
+@Builder
 @Slf4j
 public class Configuration {
     //端口号（配置信息）
     private int port = 8090;
+    //分组信息
+    private String group = "default";
     //序列化协议（配置信息）
     private String serializeType = "jdk";
     //压缩使用的协议（配置信息）

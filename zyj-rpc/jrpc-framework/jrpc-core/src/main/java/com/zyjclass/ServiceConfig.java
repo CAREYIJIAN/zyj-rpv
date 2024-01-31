@@ -8,6 +8,7 @@ public class ServiceConfig<T> {
 
     private Class<?> interfaceProvider;
     private Object ref;
+    private String group = "default";
 
     public Object getRef() {
         return ref;
@@ -23,5 +24,13 @@ public class ServiceConfig<T> {
 
     public Class<?> getInterface() {
         return interfaceProvider;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getGroup() {
+        return group;
     }
 }

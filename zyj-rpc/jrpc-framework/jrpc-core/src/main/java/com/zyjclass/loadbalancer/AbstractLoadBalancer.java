@@ -18,14 +18,15 @@ public abstract class AbstractLoadBalancer implements LoadBalancer{
     public AbstractLoadBalancer(){
     }
     @Override
-    public InetSocketAddress selectServiceAddress(String sviceName) {
+    public InetSocketAddress selectServiceAddress(String sviceName, String group) {
         //1.优先从cache中获取一个选择器
         Selector selector = cache.get(sviceName);
 
         //2.如果没有，就需要为这个service创建一个selector
         if (selector == null){
             //负载均衡器内部应该维护一个服务列表作为缓存
-            List<InetSocketAddress> serviceList = JrpcBootstrap.getInstance().getConfiguration().getRegistryConfig().getRegistry().lookUp(sviceName);
+            List<InetSocketAddress> serviceList = JrpcBootstrap.getInstance()
+                    .getConfiguration().getRegistryConfig().getRegistry().lookUp(sviceName, group);
 
             //提供一些算法负载选取合适的节点
             selector = getSelector(serviceList);

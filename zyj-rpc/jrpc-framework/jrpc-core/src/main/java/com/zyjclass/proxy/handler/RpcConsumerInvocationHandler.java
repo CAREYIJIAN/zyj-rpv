@@ -43,10 +43,12 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     private final Registry registry;//注册中心
 
     private final Class<?> interfaceRef;//接口
+    private String group;
 
-    public RpcConsumerInvocationHandler(Registry registry, Class<?> interfaceRef) {
+    public RpcConsumerInvocationHandler(Registry registry, Class<?> interfaceRef, String group) {
         this.registry = registry;
         this.interfaceRef = interfaceRef;
+        this.group = group;
     }
 
 
@@ -82,7 +84,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
             /*-------------------------------------------发现服务建立通道---------------------------------------------*/
             //1.进入负载均衡器，发现服务，从注册中心寻找服务列表，传入服务的名字,返回一个服务
-            InetSocketAddress address = JrpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectServiceAddress(interfaceRef.getName());
+            InetSocketAddress address = JrpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectServiceAddress(interfaceRef.getName(),group);
 
             if (log.isDebugEnabled()) {
                 log.debug("服务调用方发现了服务【{}】的可用主机【{}】", interfaceRef.getName(), address);

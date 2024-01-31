@@ -42,6 +42,14 @@ public class ZookeeperRegistry extends AbstractRegistry {
             ZookeeperNode zookeeperNode = new ZookeeperNode(parentNode,null);
             ZookeeperUtil.createNode(zooKeeper,zookeeperNode,null, CreateMode.PERSISTENT);
         }
+
+        //建立分组节点
+        parentNode = parentNode + "/" +service.getGroup();
+        if (!ZookeeperUtil.exists(zooKeeper,parentNode,null)){
+            ZookeeperNode zookeeperNode = new ZookeeperNode(parentNode,null);
+            ZookeeperUtil.createNode(zooKeeper,zookeeperNode,null, CreateMode.PERSISTENT);
+        }
+
         //创建本机的临时节点,ip:port
         //服务提供方的端口一般自己设定，我们还需要一个获取ip的方法
         //ip我们通常是需要一个局域网ip，不是127.0.0.1，也不是ipv6
@@ -63,9 +71,9 @@ public class ZookeeperRegistry extends AbstractRegistry {
      * @return 服务列表
      */
     @Override
-    public List<InetSocketAddress> lookUp(String serviceName) {
+    public List<InetSocketAddress> lookUp(String serviceName, String group) {
         //1.找到服务对应的节点
-        String serviceNode = Constant.BASE_PROVIDERS_PATH + "/" + serviceName;
+        String serviceNode = Constant.BASE_PROVIDERS_PATH + "/" + serviceName + "/" + group;
 
         //2.从zk中获取他的子节点,eg:192.168.12.122:1213
         List<String> childrens = ZookeeperUtil.getChildren(zooKeeper,serviceNode,new UpAndDownWatcher());
@@ -80,8 +88,8 @@ public class ZookeeperRegistry extends AbstractRegistry {
         if (inetSocketAddresses.size() == 0){
             throw new DiscoveryException("未发现任何可用的服务主机");
         }
-        //TODO 问题一：我们每次调用相关方法的时候都需要去注册中心拉取服务列表吗？ 本地缓存+watcher
-        //     问题二：该如何合理的选择一个可用的服务，而不是只获取第一个。      负载均衡策略
+        //我们每次调用相关方法的时候都需要去注册中心拉取服务列表吗？ 本地缓存+watcher
+        //该如何合理的选择一个可用的服务，而不是只获取第一个。      负载均衡策略
         return inetSocketAddresses;
     }
 }

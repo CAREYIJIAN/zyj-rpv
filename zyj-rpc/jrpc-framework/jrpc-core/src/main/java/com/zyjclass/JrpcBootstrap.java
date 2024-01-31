@@ -179,7 +179,7 @@ public class JrpcBootstrap {
         //配置reference，将来调用get方法时生成代理对象
         //1.reference需要一个注册中心
         reference.setRegistry(configuration.getRegistryConfig().getRegistry());
-
+        reference.setGroup(this.getConfiguration().getGroup());
         return this;
     }
 
@@ -237,11 +237,15 @@ public class JrpcBootstrap {
             }catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
+            //获取分组信息
+            JrpcApi jrpcApi = clazz.getAnnotation(JrpcApi.class);
+            String group = jrpcApi.group();
 
             for (Class<?> anInterface : interfaces) {
                 ServiceConfig<?> serviceConfig = new ServiceConfig<>();
                 serviceConfig.setInterface(anInterface);
                 serviceConfig.setRef(instance);
+                serviceConfig.setGroup(group);
                 if (log.isDebugEnabled()){
                     log.debug("---->已经通过包扫描，将服务【{}】发布",anInterface);
                 }
@@ -307,5 +311,10 @@ public class JrpcBootstrap {
 
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public JrpcBootstrap group(String group) {
+        this.getConfiguration().setGroup(group);
+        return this;
     }
 }
