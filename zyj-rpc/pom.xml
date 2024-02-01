@@ -17,6 +17,9 @@
         <module>jrpc-demo/jrpc-consumer-demo</module>
         <module>jrpc-demo/jrpc-provider-demo</module>
         <module>jrpc-demo/jrpc-api</module>
+        <module>jrpc-demo/jrpc-springboot-provider</module>
+        <module>jrpc-demo/jrpc-springboot-consumer</module>
+        <module>jrpc-demo/test</module>
     </modules>
 
     <properties>

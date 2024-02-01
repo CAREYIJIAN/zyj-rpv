@@ -8,6 +8,9 @@
         <outputRelativeToContentRoot value="true" />
         <module name="jrpc-framework" />
         <module name="jrpc-api" />
+        <module name="jrpc-springboot-consumer" />
+        <module name="test" />
+        <module name="jrpc-springboot-provider" />
         <module name="jrpc-manager" />
         <module name="jrpc-provider-demo" />
         <module name="jrpc-demo" />

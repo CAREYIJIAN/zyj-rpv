@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/1/27$
  */
 @Data
-@Builder
 @Slf4j
 public class Configuration {
     //端口号（配置信息）
