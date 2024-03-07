@@ -55,7 +55,7 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<JrpcRequest> 
         Map<SocketAddress, RateLimiter> everyIpRateLimiter = JrpcBootstrap.getInstance().getConfiguration().getEveryIpRateLimiter();
         RateLimiter rateLimiter = everyIpRateLimiter.get(socketAddress);
         if (rateLimiter == null){
-            rateLimiter = new TokenBuketRateLimiter(10,10);
+            rateLimiter = new TokenBuketRateLimiter(100,100);
             everyIpRateLimiter.put(socketAddress,rateLimiter);
         }
         boolean allowRequest = rateLimiter.allowRequest();
