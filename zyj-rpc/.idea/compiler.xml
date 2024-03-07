@@ -16,5 +16,11 @@
         <module name="jrpc-core" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="jrpc-consumer-demo" target="1.8" />
+      <module name="jrpc-springboot-consumer" target="1.8" />
+      <module name="jrpc-springboot-provider" target="1.8" />
+      <module name="test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
