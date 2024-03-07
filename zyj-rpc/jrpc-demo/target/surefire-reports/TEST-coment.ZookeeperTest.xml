@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite tests="4" failures="0" name="coment.ZookeeperTest" time="22.171" errors="0" skipped="0">
+  <properties>
+    <property name="idea.version" value="2022.3"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="java.vm.version" value="17.0.4+11-LTS-179"/>
+    <property name="sun.boot.library.path" value="D:\JAVA18MC\bin"/>
+    <property name="maven.multiModuleProjectDirectory" value="D:\learn\JAVAlearn\JavaGO\zyjrpc\zyj-rpc"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="path.separator" value=";"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="user.script" value=""/>
+    <property name="user.country" value="CN"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="D:\learn\JAVAlearn\JavaGO\zyjrpc\zyj-rpc"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.runtime.version" value="17.0.4+11-LTS-179"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="D:\C盘文~1\缓存\"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.variant" value=""/>
+    <property name="os.name" value="Windows 10"/>
+    <property name="maven.ext.class.path" value="D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven-event-listener.jar"/>
+    <property name="classworlds.conf" value="D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven3\bin\m2.conf"/>
+    <property name="sun.jnu.encoding" value="GBK"/>
+    <property name="java.library.path" value="D:\JAVA18MC\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\ProgramData\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\MySQL\MySQL Server 8.0\bin;D:\learn\大数据统计分析课程\winutils-master\winutils-master\hadoop-2.7.1\bin;D:\Maven\apache-maven-3.6.3\bin;D:\learn\;D:\learn\scala-2.12.1\bin;D:\learn\前端学习\;%MA;EN_HOME%\bin;D:\learn\Anaconda;D:\learn\Anaconda\Scripts;D:\learn\Anaconda\Library\bin;D:\learn\spark-3.0.0-bin-hadoop2.7\bin;D:\learn\jdk1.8.0_212\bin;D:\learn\jdk1.8.0_212\jre\bin;C:\Program Files\Git\cmd;D:\learn\JAVAlearn\微信web开发者工具\dll;D:\phyhon\Scripts\;D:\phyhon\;C:\Users\CAREYIJIAN\AppData\Local\Microsoft\WindowsApps;D:\phyhon\pycharm\PyCharm Community Edition 2021.2.2\bin;;D:\python\Scripts;D:\learn\JAVAlearn\idea数据\IntelliJ IDEA Community Edition 2022.1\bin;;D:\learn\前端学习\Microsoft VS Code\bin;C:\Users\CAREYIJIAN\AppData\Roaming\npm;C:\Users\CAREYIJIAN\IntelliJ IDEA 2022.3\bin;;D:\learn\hive学习资料\DataGrip 2020.1.5\bin;;C:\Users\CAREYIJIAN\AppData\Local\GitHubDesktop\bin;."/>
+    <property name="jansi.passthrough" value="true"/>
+    <property name="maven.conf" value="D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven3/conf"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.class.version" value="61.0"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="maven.repo.local" value="D:\learn\Maven\repository"/>
+    <property name="os.version" value="10.0"/>
+    <property name="user.home" value="C:\Users\CAREYIJIAN"/>
+    <property name="user.timezone" value="Asia/Shanghai"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.specification.version" value="17"/>
+    <property name="user.name" value="CAREYIJIAN"/>
+    <property name="java.class.path" value="D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven3\boot\plexus-classworlds-2.6.0.jar;D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven3\boot\plexus-classworlds.license"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="sun.java.command" value="org.codehaus.classworlds.Launcher -Didea.version=2022.3 -s D:\Maven\apache-maven-3.6.3\conf\settings.xml -Dmaven.repo.local=D:\learn\Maven\repository install"/>
+    <property name="java.home" value="D:\JAVA18MC"/>
+    <property name="user.language" value="zh"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.version" value="17.0.4"/>
+    <property name="native.encoding" value="GBK"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="D:\learn\JAVAlearn\IntelliJ IDEA 2022.3\plugins\maven\lib\maven3"/>
+    <property name="file.separator" value="\"/>
+    <property name="java.version.date" value="2022-07-19"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+  </properties>
+  <testcase classname="coment.ZookeeperTest" name="testCreatePNode" time="18.49"/>
+  <testcase classname="coment.ZookeeperTest" name="testWatcher" time="1.223"/>
+  <testcase classname="coment.ZookeeperTest" name="testDeleteNode" time="1.224"/>
+  <testcase classname="coment.ZookeeperTest" name="testNodeStat" time="1.234"/>
+</testsuite>

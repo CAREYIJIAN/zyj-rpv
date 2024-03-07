@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+    <port>8080</port>
+    <appName>jrpc-default-name</appName>
+    <registry url="zookeeper://127.0.0.1:2181"></registry>
+
+    <!--二选一，第一个是为了以后用户可自行扩展，第二个是用了项目中的工厂（本来有的）-->
+    <serializer code="3" type="hessian" class="com.zyjclass.serialize.impl.HessianSerializer"/>
+    <serializeType type="hessian"/>
+
+    <compressor code="1" type="gzip" class="com.zyjclass.compress.impl.GzipCompressor"/>
+    <compressType type="gzip"/>
+
+    <loadBalancer code="2" type="minimumResponseTime" class="com.zyjclass.loadbalancer.impl.MinimumResponseTimeLoadBalancer"/>
+    <!--<loadBalancerType type="minimumResponseTime"/>-->
+
+    <!--dataCenterId="2" MachineId="4"是创建实例所需的参数-->
+    <idGenerator class="com.zyjclass.IdGenerator" dataCenterId="2" MachineId="4"/>
+
+
+</configuration>

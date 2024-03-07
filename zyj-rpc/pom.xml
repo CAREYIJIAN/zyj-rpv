@@ -14,9 +14,12 @@
         <module>jrpc-framework/jrpc-common</module>
         <module>jrpc-framework/jrpc-core</module>
         <module>jrpc-manager</module>
-        <module>jrpc-demo/jrpc-client-demo</module>
+        <module>jrpc-demo/jrpc-consumer-demo</module>
         <module>jrpc-demo/jrpc-provider-demo</module>
         <module>jrpc-demo/jrpc-api</module>
+        <module>jrpc-demo/jrpc-springboot-provider</module>
+        <module>jrpc-demo/jrpc-springboot-consumer</module>
+        <module>jrpc-demo/test</module>
     </modules>
 
     <properties>
@@ -30,8 +33,14 @@
         <logback.version>1.4.8</logback.version>
         <fastjson2.version>2.0.34</fastjson2.version>
         <lombok.version>1.18.26</lombok.version>
+        <hessian.version>4.0.66</hessian.version>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>Central repository</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+    </repositories>
     <!--下面的依赖子工程会默认被引入-->
     <dependencies>
         <!--commons-lang常用的工具类-->
@@ -40,6 +49,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.caucho</groupId>
+            <artifactId>hessian</artifactId>
+            <version>${hessian.version}</version>
         </dependency>
     </dependencies>
 
